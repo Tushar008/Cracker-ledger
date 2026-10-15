@@ -1,0 +1,1150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cracker Stall Ledger</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#DDF2DF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Hind:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF8EE; --surface:#FFFFFF; --ink:#2A1A12; --muted:#7A6455; --line:#EBDCCB;
+  --red:#2E7D46; --red-ink:#FFFFFF; --gold:#E7A11A; --gold-soft:#FCEBC4;
+  --profit:#1E7A47; --profit-soft:#DDF1E5; --loss:#B42318; --loss-soft:#FBE1DD;
+  --focus:#1B5FD1;
+  --head-bg:#DDF2DF; --head-ink:#1D3B24; --head-line:#A9D8B0;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1A1210; --surface:#251A16; --ink:#F6EBDD; --muted:#B9A595; --line:#3E2E27;
+    --red:#3E9A5A; --red-ink:#FFFFFF; --gold:#F0B43A; --gold-soft:#3A2C12;
+    --profit:#4CC283; --profit-soft:#163223; --loss:#F07065; --loss-soft:#3D1A17;
+    --focus:#7FB0FF; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1A1210; --surface:#251A16; --ink:#F6EBDD; --muted:#B9A595; --line:#3E2E27;
+  --red:#3E9A5A; --red-ink:#FFFFFF; --gold:#F0B43A; --gold-soft:#3A2C12;
+  --profit:#4CC283; --profit-soft:#163223; --loss:#F07065; --loss-soft:#3D1A17;
+  --focus:#7FB0FF; color-scheme:dark;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --head-bg:#1F3D28; --head-ink:#E3F5E6; --head-line:#36603F; }
+}
+:root[data-theme="dark"]{ --head-bg:#1F3D28; --head-ink:#E3F5E6; --head-line:#36603F; }
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hind",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5;padding-bottom:76px}
+h1,h2,h3,.num{font-family:"Baloo 2","Hind",system-ui,sans-serif}
+h2{font-size:1.45rem;margin:0 0 .25rem;font-weight:700;line-height:1.2}
+h3{font-size:1.1rem;margin:0 0 .5rem;font-weight:600}
+p{margin:0 0 .75rem}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+
+/* header */
+.top{background:var(--head-bg);color:var(--head-ink);border-bottom:3px solid var(--head-line)}
+.top-in{max-width:1080px;margin:0 auto;padding:14px 16px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:1.5rem;line-height:1;margin:0}
+.brand small{display:block;font-family:"Hind",sans-serif;font-weight:500;font-size:.8rem;opacity:.85;margin-top:4px}
+.today-strip{display:flex;gap:18px;font-size:.85rem}
+.today-strip div{line-height:1.15}
+.today-strip b{display:block;font-family:"Baloo 2",sans-serif;font-size:1.25rem;font-weight:700}
+.today-strip{align-items:center}
+.eye{background:transparent;color:var(--head-ink);border:1px solid var(--head-line);border-radius:10px;padding:6px 12px;min-height:40px;font-weight:600;cursor:pointer}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:12px 0 16px}
+.swatch{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 10px;cursor:pointer;text-align:left;font-weight:600;font-size:.9rem;min-height:48px}
+.swatch i{width:28px;height:28px;border-radius:50%;flex:none;border:2px solid}
+.swatch[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.lock{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px))}
+body.locked .lock{display:flex}
+body.locked > header, body.locked > nav, body.locked > main{display:none}
+.lock-card{width:min(360px,100%);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;text-align:center}
+.lock-card h2{margin-bottom:6px}
+.pin-in{font-family:"Baloo 2",sans-serif;font-size:1.6rem!important;letter-spacing:.5em;text-align:center;margin:14px 0 6px}
+.lock-err{color:var(--loss);font-weight:600;font-size:.9rem;min-height:1.4em;margin:0 0 10px}
+.masked .secret .real{display:none}
+.masked .secret::after{content:"***";letter-spacing:.08em}
+
+/* nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs button{flex:1;border:0;background:none;padding:10px 4px 12px;font-weight:600;font-size:.9rem;color:var(--muted);cursor:pointer;border-top:3px solid transparent}
+nav.tabs button[aria-selected="true"]{color:var(--red);border-top-color:var(--red)}
+@media (min-width:760px){
+  body{padding-bottom:0}
+  nav.tabs{position:sticky;top:0;bottom:auto;border-top:0;border-bottom:1px solid var(--line);justify-content:center;padding-bottom:0}
+  nav.tabs button{flex:0 0 auto;padding:12px 22px;border-top:0;border-bottom:3px solid transparent}
+  nav.tabs button[aria-selected="true"]{border-bottom-color:var(--red)}
+}
+
+main{max-width:1080px;margin:0 auto;padding:18px 16px 32px}
+section[hidden]{display:none}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+
+/* forms */
+label{display:block;font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+input[type=text],input[type=number],input[type=date],input[type=search],select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);min-height:44px}
+.grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--bg);padding:8px 12px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--gold-soft);color:var(--ink)}
+.btn{border:0;border-radius:10px;padding:10px 16px;min-height:44px;font-weight:600;cursor:pointer;background:var(--red);color:var(--red-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.link{background:none;border:0;color:var(--red);padding:6px 8px;min-height:auto}
+.btn.danger{background:transparent;color:var(--loss);border:1px solid var(--loss)}
+.btn.big{width:100%;font-size:1.1rem;padding:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+
+/* sell */
+.sell-layout{display:grid;gap:16px}
+@media (min-width:900px){.sell-layout{grid-template-columns:1.4fr 1fr;align-items:start}.cart{position:sticky;top:64px}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px}
+.tile{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:92px}
+.tile:hover{border-color:var(--gold)}
+.search-row{display:flex;gap:10px;align-items:stretch}
+.search-row input{flex:1}
+.mic{flex:none;display:flex;align-items:center;gap:8px;border:0;border-radius:10px;padding:0 16px;min-height:48px;background:var(--red);color:var(--red-ink);font-weight:600;cursor:pointer}
+.mic svg{width:22px;height:22px}
+.mic.on{background:var(--loss);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.7}}
+@media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
+.voice-out{margin-top:10px;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:.92rem}
+.voice-out[hidden]{display:none}
+.voice-out .heard{color:var(--muted);font-style:italic}
+.tile .nm{font-weight:600;line-height:1.25}
+.tile-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.tile .tot{font-size:.72rem;color:var(--muted);white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:0 7px;line-height:1.6;flex:none}
+.tile .pr{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:1.15rem;margin-top:auto}
+.tile .lf{font-size:.8rem;color:var(--muted)}
+.tile.out{opacity:.55}
+.tile .lf.low{color:var(--loss);font-weight:600}
+.cart-line{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.cart-line:last-child{border-bottom:0}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px}
+.qty button{border:0;background:none;width:38px;height:38px;font-size:1.2rem;cursor:pointer}
+.qty input{width:52px;text-align:center;border:0;background:none;min-height:38px;padding:0}
+.price-in{width:100px!important;min-height:38px!important;padding:6px 8px!important}
+.warn{font-size:.8rem;color:var(--loss);font-weight:600}
+.bill-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:6px;border-top:2px solid var(--ink)}
+.bill-total .num{font-size:1.8rem;font-weight:800}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:.8rem}
+th:first-child,td:first-child{text-align:left;white-space:normal;min-width:130px}
+tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
+.pos{color:var(--profit)} .neg{color:var(--loss)}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:600}
+.pill.pos{background:var(--profit-soft)} .pill.neg{background:var(--loss-soft)}
+
+/* report */
+.verdict{border-radius:16px;padding:22px 20px;margin-bottom:16px}
+.verdict.pos{background:var(--profit-soft)} .verdict.neg{background:var(--loss-soft)} .verdict.zero{background:var(--gold-soft)}
+.verdict .lead{font-size:1rem;margin:0}
+.verdict .amt{font-family:"Baloo 2",sans-serif;font-size:clamp(2.4rem,9vw,3.6rem);font-weight:800;line-height:1.05;margin:4px 0 6px}
+.verdict.pos .amt{color:var(--profit)} .verdict.neg .amt{color:var(--loss)}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.figs div{background:var(--surface);padding:12px 14px}
+.figs b{display:block;font-family:"Baloo 2",sans-serif;font-size:1.3rem;font-weight:700}
+.figs span{font-size:.82rem;color:var(--muted)}
+.bar{height:12px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:999px}
+.bar i.done{background:var(--profit)}
+.empty{padding:28px 12px;text-align:center;color:var(--muted)}
+.status{font-size:.8rem;opacity:.9}
+
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:20px;width:min(420px,92vw)}
+dialog::backdrop{background:rgba(20,10,5,.45)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body class="masked">
+<script>try{if(localStorage.getItem("cracker-ledger-pin"))document.body.classList.add("locked")}catch(e){}</script>
+<header class="top">
+  <div class="top-in">
+    <h1 class="brand">Cracker stall ledger<small id="syncStatus">Loading…</small></h1>
+    <div class="today-strip" aria-label="Today so far">
+      <div>Sold today<b class="secret"><span class="real" id="hdrSales">₹0</span></b></div>
+      <div>Profit today<b class="secret"><span class="real" id="hdrProfit">₹0</span></b></div>
+      <button class="eye" id="eyeBtn" aria-pressed="false">Show numbers</button>
+      <button class="eye" id="colourBtn">Colour</button>
+      <button class="eye" id="lockBtn" hidden>Lock</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="sell" aria-selected="true">Sell</button>
+  <button role="tab" data-tab="stock" aria-selected="false">Stock</button>
+  <button role="tab" data-tab="report" aria-selected="false">Day report</button>
+  <button role="tab" data-tab="bills" aria-selected="false">Bills</button>
+</nav>
+
+<main>
+  <!-- SELL -->
+  <section id="tab-sell">
+    <div class="sell-layout">
+      <div>
+        <div class="search-row">
+          <input type="search" id="sellSearch" placeholder="Search crackers…" aria-label="Search crackers">
+          <button class="mic" id="micBtn" aria-label="Add items by voice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg><span id="micLbl">Speak</span></button>
+        </div>
+        <div class="voice-out" id="voiceOut" hidden aria-live="polite"></div>
+        <div class="tiles" id="tiles"></div>
+      </div>
+      <div class="panel cart">
+        <div class="row spread"><h3 style="margin:0">Current bill</h3><button class="btn link" id="clearCart">Clear</button></div>
+        <div id="cartLines"></div>
+        <div id="cartFoot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STOCK -->
+  <section id="tab-stock" hidden>
+    <div class="panel">
+      <h2 id="formTitle">Add stock you bought</h2>
+      <p class="muted small">For a bulk deal, enter the total you paid and how many units you got. The app works out the cost per unit.</p>
+      <div class="grid-form">
+        <div style="grid-column:1/-1;max-width:420px"><label for="fName">Item name</label><input type="text" id="fName" placeholder="e.g. Flower pots (10 pcs)"></div>
+        <div><label for="fQty">Quantity bought</label><input type="number" id="fQty" min="0" inputmode="numeric" placeholder="50"></div>
+        <div><label for="fUnit">Counted as</label>
+          <select id="fUnit"><option>box</option><option>packet</option><option>piece</option><option>pack</option><option>dozen</option><option>bundle</option></select></div>
+        <div>
+          <label>Cost you paid</label>
+          <div class="seg" role="group" aria-label="Cost entry">
+            <button type="button" data-cost="total" aria-pressed="true">Total</button>
+            <button type="button" data-cost="unit" aria-pressed="false">Per unit</button>
+          </div>
+        </div>
+        <div><label for="fCost" id="fCostLbl">Total paid (₹)</label><input type="number" id="fCost" min="0" step="0.01" inputmode="decimal" placeholder="3000"></div>
+        <div><label for="fPrice">Your selling price per unit (₹)</label><input type="number" id="fPrice" min="0" step="0.01" inputmode="decimal" placeholder="120"></div>
+      </div>
+      <p class="small" id="fPreview" style="margin-top:12px;min-height:1.5em"></p>
+      <div class="row"><button class="btn" id="saveItem">Add to stock</button><button class="btn ghost" id="cancelEdit" hidden>Cancel</button></div>
+    </div>
+    <div class="panel">
+      <div class="row spread"><h3 style="margin:0">Your stock</h3><span class="small muted" id="stockSummary"></span></div>
+      <div class="tbl-wrap" id="stockTable"></div>
+    </div>
+    <div class="panel">
+      <h3>PIN lock</h3>
+      <p class="small muted" id="pinState">No PIN set. Anyone who opens the app on this phone can see your sales and profit.</p>
+      <div class="row">
+        <button class="btn" id="pinSet">Set a PIN</button>
+        <button class="btn ghost" id="pinChange" hidden>Change PIN</button>
+        <button class="btn ghost" id="pinRemove" hidden>Remove PIN</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Backup</h3>
+      <p class="small muted">Your data is saved only inside this phone's browser. Download a backup every night and keep it safe (WhatsApp it to yourself, or save to Google Drive). If the phone is lost or browser data is cleared, restore from the latest backup.</p>
+      <div class="row">
+        <button class="btn" id="backupBtn">Download backup</button>
+        <button class="btn ghost" id="restoreBtn">Restore from backup</button>
+        <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Start over</h3>
+      <p class="small muted">Clearing can't be undone. Download your day reports first if you want to keep a record.</p>
+      <div class="row">
+        <button class="btn ghost" id="clearSales">Clear sales and expenses</button>
+        <button class="btn danger" id="clearAll">Clear everything</button>
+      </div>
+      <p class="small muted" style="margin:8px 0 0">“Clear sales and expenses” keeps your stock list and puts every item back to full quantity. “Clear everything” also deletes the stock list.</p>
+    </div>
+  </section>
+
+  <!-- REPORT -->
+  <section id="tab-report" hidden>
+    <div class="row spread" style="margin-bottom:14px">
+      <div style="max-width:200px"><label for="repDate">Report for</label><input type="date" id="repDate"></div>
+      <button class="btn ghost" id="exportCsv">Download CSV</button>
+    </div>
+    <div id="repBody"></div>
+    <div class="panel">
+      <h3>Expenses for this day</h3>
+      <p class="small muted">Stall rent, transport, labour, tea for the helpers. These come out of the day's profit.</p>
+      <div class="grid-form">
+        <div><label for="exLabel">What for</label><input type="text" id="exLabel" placeholder="Stall rent"></div>
+        <div><label for="exAmt">Amount (₹)</label><input type="number" id="exAmt" min="0" step="0.01" inputmode="decimal"></div>
+        <div><button class="btn" id="addExp">Add expense</button></div>
+      </div>
+      <div id="expList" style="margin-top:10px"></div>
+    </div>
+    <div id="seasonBody"></div>
+  </section>
+
+  <!-- BILLS -->
+  <section id="tab-bills" hidden>
+    <div class="row spread" style="margin-bottom:14px">
+      <div style="max-width:200px"><label for="billDate">Bills on</label><input type="date" id="billDate"></div>
+    </div>
+    <div id="billList"></div>
+  </section>
+</main>
+
+<dialog id="restockDlg">
+  <h3 id="rsTitle">Restock</h3>
+  <div class="grid-form" style="grid-template-columns:1fr 1fr">
+    <div><label for="rsQty">Extra quantity</label><input type="number" id="rsQty" min="1" inputmode="numeric"></div>
+    <div><label for="rsCost">Total paid for these (₹)</label><input type="number" id="rsCost" min="0" step="0.01" inputmode="decimal"></div>
+  </div>
+  <p class="small muted" id="rsNote" style="margin-top:10px"></p>
+  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="rsCancel">Cancel</button><button class="btn" id="rsSave">Add to stock</button></div>
+</dialog>
+
+<dialog id="colourDlg">
+  <h3>Choose a colour</h3>
+  <p class="small muted" style="margin:0">Changes the top bar and buttons on this device.</p>
+  <div class="swatches" id="swatches"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn" id="colourDone">Done</button></div>
+</dialog>
+
+<dialog id="confirmDlg">
+  <h3 id="cfTitle">Are you sure?</h3>
+  <p class="small" id="cfText"></p>
+  <div id="cfWordWrap" hidden style="margin-bottom:12px"><label for="cfWord">Type CLEAR to confirm</label><input type="text" id="cfWord" autocomplete="off" autocapitalize="characters"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="cfCancel">Cancel</button><button class="btn" id="cfOk">Delete</button></div>
+</dialog>
+
+<div class="lock" id="lockScreen" aria-hidden="true">
+  <div class="lock-card">
+    <h2>Cracker stall ledger</h2>
+    <p class="small muted" style="margin:0">Enter your PIN to open</p>
+    <input type="password" class="pin-in" id="lockPin" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" aria-label="PIN">
+    <p class="lock-err" id="lockErr" role="alert"></p>
+    <button class="btn big" id="unlockBtn">Unlock</button>
+    <button class="btn link" id="forgotPin" style="margin-top:10px">Forgot PIN?</button>
+  </div>
+</div>
+
+<dialog id="pinDlg">
+  <h3 id="pdTitle">Set a PIN</h3>
+  <div id="pdCurWrap" style="margin-bottom:10px"><label for="pdCur">Current PIN</label><input type="password" id="pdCur" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
+  <div id="pdNewWrap">
+    <div style="margin-bottom:10px"><label for="pdNew">New PIN (4 to 8 digits)</label><input type="password" id="pdNew" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
+    <div style="margin-bottom:10px"><label for="pdNew2">Type the new PIN again</label><input type="password" id="pdNew2" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
+  </div>
+  <p class="lock-err" id="pdErr" role="alert"></p>
+  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="pdCancel">Cancel</button><button class="btn" id="pdOk">Save PIN</button></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- state ---------- */
+const S = { stock: [], sales: [], expenses: [] };
+const LS_KEY = "cracker-ledger-v1";
+let db = null, downloads = null;
+let cart = []; // {itemId, qty, price}
+let payMode = "cash";
+let costMode = "total";
+let editingId = null;
+let restockId = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+const inr = n => (n < 0 ? "−₹" : "₹") + Math.abs(Math.round(n)).toLocaleString("en-IN");
+const inr2 = n => (n < 0 ? "−₹" : "₹") + Math.abs(n).toLocaleString("en-IN", {minimumFractionDigits:0, maximumFractionDigits:2});
+const pct = (a, b) => b ? (a / b * 100) : 0;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const localDate = (d = new Date()) => { const z = n => String(n).padStart(2, "0"); return d.getFullYear() + "-" + z(d.getMonth()+1) + "-" + z(d.getDate()); };
+const today = () => localDate();
+const prettyDate = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-IN", {weekday:"short", day:"numeric", month:"short"}); };
+
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200); }
+
+/* ---------- storage: shared db when available, otherwise this device ---------- */
+function loadLocal(){
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) { const d = JSON.parse(raw); S.stock = d.stock || []; S.sales = d.sales || []; S.expenses = d.expenses || []; } } catch(e) {}
+}
+function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
+
+async function put(col, obj){
+  if (db) {
+    const { id, ...rest } = obj;
+    try { await db.collection(col).doc(id).set(rest); }
+    catch(e){ toast(e && e.code === "quota_exceeded" ? "Storage is full" : "Couldn't save. Check your connection and try again."); throw e; }
+  } else {
+    const arr = S[col]; const i = arr.findIndex(x => x.id === obj.id);
+    if (i >= 0) arr[i] = obj; else arr.push(obj);
+    saveLocal(); renderData();
+  }
+}
+async function remove(col, id){
+  if (db) { try { await db.collection(col).doc(id).delete(); } catch(e){ toast("Couldn't delete. Try again."); } }
+  else { S[col] = S[col].filter(x => x.id !== id); saveLocal(); renderData(); }
+}
+
+function setStatus(text){ $("syncStatus").textContent = text; }
+
+async function connect(){
+  loadLocal();
+  setStatus("Saved on this phone · works offline");
+  renderAll();
+  const c = window.claude;
+  if (!c || typeof c.use !== "function") return;
+  try { downloads = await c.use("downloads"); } catch(e) { downloads = null; }
+  $("exportCsv").hidden = !downloads;
+  let handle = null;
+  try { handle = await c.use("db"); } catch(e) { handle = null; }
+  if (!handle) return;
+  db = handle;
+  setStatus("Synced to your account · open on any device");
+  ["stock","sales","expenses"].forEach(col => {
+    db.collection(col).onSnapshot(snap => {
+      S[col] = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      renderData();
+    }, err => { setStatus("Sync paused · reload to reconnect"); });
+  });
+}
+
+/* ---------- derived numbers ---------- */
+function soldMap(){
+  const m = {};
+  S.sales.forEach(s => (s.lines || []).forEach(l => { m[l.itemId] = (m[l.itemId] || 0) + num(l.qty); }));
+  return m;
+}
+function itemById(id){ return S.stock.find(x => x.id === id); }
+function saleTotals(s){
+  let rev = 0, cost = 0;
+  (s.lines || []).forEach(l => { rev += num(l.qty) * num(l.price); cost += num(l.qty) * num(l.cost); });
+  return { rev, cost };
+}
+function dayFigures(date){
+  const sales = S.sales.filter(s => s.date === date);
+  const exps = S.expenses.filter(e => e.date === date);
+  let rev = 0, cost = 0, cash = 0, upi = 0;
+  const items = {};
+  sales.forEach(s => {
+    const t = saleTotals(s); rev += t.rev; cost += t.cost;
+    if (s.pay === "upi") upi += t.rev; else cash += t.rev;
+    (s.lines || []).forEach(l => {
+      const k = l.itemId;
+      if (!items[k]) items[k] = { name: l.name, unit: l.unit || "", qty: 0, rev: 0, cost: 0 };
+      items[k].qty += num(l.qty); items[k].rev += num(l.qty) * num(l.price); items[k].cost += num(l.qty) * num(l.cost);
+    });
+  });
+  const exp = exps.reduce((a, e) => a + num(e.amount), 0);
+  return { sales, exps, rev, cost, gross: rev - cost, exp, net: rev - cost - exp, cash, upi, items };
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav.tabs button").forEach(x => x.setAttribute("aria-selected", x === b ? "true" : "false"));
+  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + b.dataset.tab);
+  window.scrollTo(0, 0);
+}));
+
+/* ---------- SELL ---------- */
+function renderTiles(){
+  const q = $("sellSearch").value.trim().toLowerCase();
+  const sold = soldMap();
+  const list = S.stock.filter(i => !q || i.name.toLowerCase().includes(q)).sort((a,b) => a.name.localeCompare(b.name));
+  const el = $("tiles");
+  if (!S.stock.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">No stock yet. Add what you bought in the <b>Stock</b> tab, then come back here to sell.</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">Nothing matches “' + esc(q) + '”.</div>'; return; }
+  el.innerHTML = list.map(i => {
+    const inCart = cart.filter(c => c.itemId === i.id).reduce((a,c) => a + c.qty, 0);
+    const left = num(i.qty) - (sold[i.id] || 0) - inCart;
+    const low = left <= Math.max(2, num(i.qty) * 0.1);
+    return '<button class="tile' + (left <= 0 ? " out" : "") + '" data-id="' + esc(i.id) + '">' +
+      '<span class="tile-top"><span class="nm">' + esc(i.name) + '</span><span class="tot">Total ' + i.qty + '</span></span>' +
+      '<span class="lf' + (low ? " low" : "") + '">' + (left <= 0 ? "Out of stock" : left + " " + esc(i.unit) + " left") + '</span>' +
+      '<span class="pr">' + inr2(num(i.price)) + '</span></button>';
+  }).join("");
+}
+$("tiles").addEventListener("click", e => {
+  const t = e.target.closest(".tile"); if (!t) return;
+  const item = itemById(t.dataset.id); if (!item) return;
+  const line = cart.find(c => c.itemId === item.id);
+  if (line) line.qty += 1; else cart.push({ itemId: item.id, qty: 1, price: num(item.price) });
+  renderCart(); renderTiles();
+});
+$("sellSearch").addEventListener("input", renderTiles);
+
+function renderCart(){
+  const el = $("cartLines");
+  if (!cart.length) { el.innerHTML = '<div class="empty">Tap a cracker to add it to the bill.</div>'; $("cartFoot").innerHTML = ""; return; }
+  el.innerHTML = cart.map((c, idx) => {
+    const it = itemById(c.itemId) || { name: "Removed item", unit: "", cost: 0 };
+    return '<div class="cart-line" data-idx="' + idx + '">' +
+      '<div><div style="font-weight:600">' + esc(it.name) + '</div><div class="warn" data-warn></div></div>' +
+      '<button class="btn link" data-act="rm" aria-label="Remove ' + esc(it.name) + '">Remove</button>' +
+      '<div class="qty"><button data-act="dec" aria-label="One less">−</button><input type="number" min="1" inputmode="numeric" value="' + c.qty + '" data-act="qty" aria-label="Quantity"><button data-act="inc" aria-label="One more">+</button></div>' +
+      '<div class="row" style="justify-content:flex-end;gap:6px"><span class="small muted">₹ each</span><input class="price-in" type="number" min="0" step="0.01" inputmode="decimal" value="' + c.price + '" data-act="price" aria-label="Price each"></div>' +
+      '</div>';
+  }).join("");
+  $("cartFoot").innerHTML =
+    '<div class="bill-total"><span>Total</span><span class="num" id="billTotal"></span></div>' +
+    '<p class="small" id="billMargin" style="margin:4px 0 12px"></p>' +
+    '<div class="row" style="margin-bottom:12px"><span class="small muted">Paid by</span><div class="seg" role="group" aria-label="Payment mode">' +
+      '<button type="button" data-pay="cash" aria-pressed="' + (payMode === "cash") + '">Cash</button>' +
+      '<button type="button" data-pay="upi" aria-pressed="' + (payMode === "upi") + '">UPI / card</button></div></div>' +
+    '<button class="btn big" id="completeSale">Complete sale</button>';
+  updateCartTotals();
+}
+function updateCartTotals(){
+  if (!cart.length) return;
+  const sold = soldMap();
+  let total = 0, cost = 0;
+  document.querySelectorAll(".cart-line").forEach(row => {
+    const c = cart[+row.dataset.idx]; const it = itemById(c.itemId);
+    total += c.qty * c.price; cost += c.qty * (it ? num(it.cost) : 0);
+    const w = row.querySelector("[data-warn]"); const msgs = [];
+    if (it && c.price < num(it.cost)) msgs.push("Below your cost of " + inr2(num(it.cost)));
+    if (it) { const left = num(it.qty) - (sold[it.id] || 0); if (c.qty > left) msgs.push("Only " + Math.max(left,0) + " left in stock"); }
+    w.textContent = msgs.join(" · ");
+  });
+  $("billTotal").textContent = inr2(total);
+  const m = total - cost;
+  $("billMargin").innerHTML = 'Margin on this bill: <span class="secret"><span class="real"><b class="' + (m >= 0 ? "pos" : "neg") + '">' + inr2(m) + '</b> <span class="muted">(' + pct(m, total).toFixed(0) + '%)</span></span></span>';
+}
+$("cartLines").addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const idx = +b.closest(".cart-line").dataset.idx; const c = cart[idx];
+  if (b.dataset.act === "inc") c.qty += 1;
+  if (b.dataset.act === "dec") c.qty = Math.max(1, c.qty - 1);
+  if (b.dataset.act === "rm") cart.splice(idx, 1);
+  renderCart(); renderTiles();
+});
+$("cartLines").addEventListener("input", e => {
+  const inp = e.target; const row = inp.closest(".cart-line"); if (!row) return;
+  const c = cart[+row.dataset.idx];
+  if (inp.dataset.act === "qty") { c.qty = Math.max(1, Math.round(num(inp.value)) || 1); renderTiles(); }
+  if (inp.dataset.act === "price") c.price = Math.max(0, num(inp.value));
+  updateCartTotals();
+});
+$("cartFoot").addEventListener("click", async e => {
+  const p = e.target.closest("[data-pay]");
+  if (p) { payMode = p.dataset.pay; document.querySelectorAll("[data-pay]").forEach(x => x.setAttribute("aria-pressed", x.dataset.pay === payMode)); return; }
+  if (e.target.id === "completeSale") {
+    const btn = e.target; btn.disabled = true;
+    const now = new Date();
+    const lines = cart.map(c => { const it = itemById(c.itemId) || {}; return { itemId: c.itemId, name: it.name || "Item", unit: it.unit || "", qty: c.qty, price: c.price, cost: num(it.cost) }; });
+    const sale = { id: uid(), date: localDate(now), ts: now.getTime(), pay: payMode, lines };
+    try {
+      await put("sales", sale);
+      const t = saleTotals(sale);
+      cart = []; renderCart(); renderTiles();
+      toast("Sale saved · " + inr2(t.rev));
+    } catch(err) { btn.disabled = false; }
+  }
+});
+$("clearCart").addEventListener("click", () => { cart = []; renderCart(); renderTiles(); });
+
+/* ---------- VOICE ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const NUMW = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10,
+  eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19,
+  twenty:20, thirty:30, forty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90,
+  ek:1, do:2, teen:3, char:4, chaar:4, paanch:5, panch:5, chhe:6, chhah:6, saat:7, aath:8, nau:9, das:10, dus:10 };
+const FILLER = new Set(("box boxes packet packets pack packs piece pieces pcs pc bundle bundles dozen dozens of x and aur add plus please " +
+  "give me the a an also with more cash upi online gpay phonepe paytm card payment by in pay paid wala wale").split(" "));
+const isNum = t => typeof t === "number";
+
+function voiceTokens(text){
+  const raw = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+  const out = [];
+  for (let i = 0; i < raw.length; i++) {
+    const w = raw[i];
+    if (/^\d+$/.test(w)) { out.push(parseInt(w, 10)); continue; }
+    if (w in NUMW) {
+      let n = NUMW[w];
+      if (n >= 20 && n % 10 === 0 && raw[i+1] in NUMW && NUMW[raw[i+1]] < 10) { n += NUMW[raw[i+1]]; i++; }
+      if (raw[i+1] === "hundred") { n *= 100; i++; }
+      out.push(n); continue;
+    }
+    out.push(w);
+  }
+  return out;
+}
+function lev(a, b){
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+const sim = (a, b) => 1 - lev(a, b) / Math.max(a.length, b.length, 1);
+// sound-alike match: compare consonant skeletons so "chakra" matches "chakkar", "anaar" matches "anar"
+const skel = w => w.replace(/(.)\1+/g, "$1").replace(/(?!^)[aeiouyh]/g, "");
+const simV = (a, b) => { const r = sim(a, b), sa = skel(a), sb = skel(b); return (sa.length >= 3 && sb.length >= 3) ? Math.max(r, sim(sa, sb) * 0.95) : r; };
+function itemKey(name){
+  const w = name.toLowerCase().replace(/\(.*?\)/g, " ").replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  return w.length ? w : name.toLowerCase().replace(/[^a-z]/g, " ").split(/\s+/).filter(Boolean);
+}
+
+function parseVoice(text){
+  const tok = voiceTokens(text);
+  const keys = S.stock.map(it => ({ it, key: itemKey(it.name) })).filter(k => k.key.length);
+  const cands = [];
+  for (let i = 0; i < tok.length; i++) {
+    if (isNum(tok[i]) || FILLER.has(tok[i])) continue;
+    keys.forEach(({ it, key }) => {
+      const target = key.join("");
+      [key.length, key.length - 1, key.length + 1].forEach(len => {
+        if (len < 1 || i + len > tok.length) return;
+        const span = tok.slice(i, i + len);
+        if (span.some(t => isNum(t))) return;
+        const score = simV(span.join(""), target);
+        if (score >= 0.72) cands.push({ it, start: i, end: i + len - 1, score });
+      });
+    });
+  }
+  cands.sort((a, b) => b.score - a.score || (b.end - b.start) - (a.end - a.start));
+  const taken = new Array(tok.length).fill(false), picks = [];
+  cands.forEach(c => {
+    for (let k = c.start; k <= c.end; k++) if (taken[k]) return;
+    for (let k = c.start; k <= c.end; k++) taken[k] = true;
+    picks.push(c);
+  });
+  picks.sort((a, b) => a.start - b.start);
+  const used = new Set();
+  const findNum = (from, step) => {
+    for (let k = from, hops = 0; k >= 0 && k < tok.length && hops < 3; k += step, hops++) {
+      if (isNum(tok[k])) return used.has(k) ? -1 : k;
+      if (!FILLER.has(tok[k])) return -1;
+    }
+    return -1;
+  };
+  const lines = picks.map(p => {
+    let k = findNum(p.start - 1, -1);
+    if (k < 0) k = findNum(p.end + 1, 1);
+    let qty = 1;
+    if (k >= 0) { used.add(k); qty = tok[k]; }
+    return { it: p.it, qty: Math.max(1, Math.min(qty, 9999)) };
+  });
+  const t = " " + text.toLowerCase() + " ";
+  let pay = null;
+  if (/\b(upi|online|gpay|google pay|phonepe|phone pe|paytm|card)\b/.test(t)) pay = "upi";
+  else if (/\bcash\b/.test(t)) pay = "cash";
+  const clear = /\b(clear|cancel)\b/.test(t) && !lines.length;
+  return { lines, pay, clear };
+}
+
+function applyVoice(results){
+  const out = $("voiceOut"); out.hidden = false;
+  let best = null, heard = results[0] || "";
+  for (const r of results) { const p = parseVoice(r); if (p.lines.length || p.clear || p.pay) { best = p; heard = r; break; } }
+  if (!best) {
+    out.innerHTML = '<div class="heard">Heard: “' + esc(heard) + '”</div><div class="warn" style="margin-top:4px">Didn\u2019t match any item in your stock. Try saying the item name as it is written in the Stock tab.</div>';
+    return;
+  }
+  if (best.clear) { cart = []; renderCart(); renderTiles(); out.innerHTML = '<div class="heard">Heard: “' + esc(heard) + '”</div><div>Bill cleared.</div>'; return; }
+  const added = [];
+  best.lines.forEach(l => {
+    const line = cart.find(c => c.itemId === l.it.id);
+    if (line) line.qty += l.qty; else cart.push({ itemId: l.it.id, qty: l.qty, price: num(l.it.price) });
+    added.push(esc(l.it.name) + ' × ' + l.qty);
+  });
+  if (best.pay) payMode = best.pay;
+  renderCart(); renderTiles();
+  out.innerHTML = '<div class="heard">Heard: “' + esc(heard) + '”</div>' +
+    (added.length ? '<div style="margin-top:4px"><b>Added:</b> ' + added.join(", ") + '</div>' : '') +
+    (best.pay ? '<div>Payment set to <b>' + (best.pay === "upi" ? "UPI / card" : "Cash") + '</b></div>' : '') +
+    '<div class="small muted" style="margin-top:4px">Check the bill, then tap Complete sale.</div>';
+}
+
+let rec = null, listening = false;
+function stopListening(){ listening = false; $("micBtn").classList.remove("on"); $("micLbl").textContent = "Speak"; }
+$("micBtn").addEventListener("click", () => {
+  const out = $("voiceOut");
+  if (!SR) { out.hidden = false; out.innerHTML = '<div class="warn">Voice input isn\u2019t supported in this browser. Open the app in Google Chrome.</div>'; return; }
+  if (listening && rec) { rec.stop(); return; }
+  if (!S.stock.length) { out.hidden = false; out.innerHTML = '<div class="warn">Add items in the Stock tab first.</div>'; return; }
+  rec = new SR();
+  rec.lang = "en-IN"; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
+  let finalAlts = null;
+  rec.onresult = e => {
+    const r = e.results[e.results.length - 1];
+    const text = Array.from(e.results).map(x => x[0].transcript).join(" ");
+    out.hidden = false; out.innerHTML = '<div class="heard">' + esc(text) + '…</div>';
+    if (r.isFinal) {
+      finalAlts = [];
+      for (let k = 0; k < r.length; k++) finalAlts.push(Array.from(e.results).slice(0, -1).map(x => x[0].transcript).concat(r[k].transcript).join(" "));
+    }
+  };
+  rec.onerror = e => {
+    out.hidden = false;
+    const msg = e.error === "not-allowed" || e.error === "service-not-allowed" ? "Microphone permission is blocked. Allow the microphone for this site in Chrome settings."
+      : e.error === "network" ? "Voice needs an internet connection on this phone. You can still tap items to add them."
+      : e.error === "no-speech" ? "Didn\u2019t hear anything. Tap Speak and try again."
+      : "Voice input stopped (" + esc(e.error) + "). Try again.";
+    out.innerHTML = '<div class="warn">' + msg + '</div>';
+    finalAlts = null;
+  };
+  rec.onend = () => { stopListening(); if (finalAlts && finalAlts.length) applyVoice(finalAlts); };
+  try {
+    rec.start(); listening = true;
+    $("micBtn").classList.add("on"); $("micLbl").textContent = "Listening…";
+    out.hidden = false; out.innerHTML = '<div class="small muted">Say items and quantities, e.g. “chakkar 2, anar 3, UPI”.</div>';
+  } catch(err) { stopListening(); }
+});
+
+/* ---------- STOCK ---------- */
+document.querySelectorAll("[data-cost]").forEach(b => b.addEventListener("click", () => setCostMode(b.dataset.cost)));
+function setCostMode(m){
+  costMode = m;
+  document.querySelectorAll("[data-cost]").forEach(x => x.setAttribute("aria-pressed", x.dataset.cost === m));
+  $("fCostLbl").textContent = m === "total" ? "Total paid (₹)" : "Cost per unit (₹)";
+  preview();
+}
+function unitCostFromForm(){
+  const q = num($("fQty").value), c = num($("fCost").value);
+  return costMode === "total" ? (q ? c / q : 0) : c;
+}
+function preview(){
+  const q = num($("fQty").value), uc = unitCostFromForm(), p = num($("fPrice").value);
+  const el = $("fPreview");
+  if (!q || !uc) { el.textContent = ""; return; }
+  let s = "Cost per unit: <b>" + inr2(uc) + "</b> · Total investment: <b>" + inr2(uc * q) + "</b>";
+  if (p) { const m = p - uc; s += ' · Margin per unit: <b class="' + (m >= 0 ? "pos" : "neg") + '">' + inr2(m) + " (" + pct(m, p).toFixed(0) + "%)</b>"; }
+  el.innerHTML = s;
+}
+["fQty","fCost","fPrice"].forEach(id => $(id).addEventListener("input", preview));
+
+function resetForm(){
+  editingId = null;
+  ["fName","fQty","fCost","fPrice"].forEach(id => $(id).value = "");
+  $("fUnit").value = "box"; setCostMode("total");
+  $("formTitle").textContent = "Add stock you bought"; $("saveItem").textContent = "Add to stock"; $("cancelEdit").hidden = true;
+}
+$("cancelEdit").addEventListener("click", resetForm);
+$("saveItem").addEventListener("click", async () => {
+  const name = $("fName").value.trim(), qty = Math.round(num($("fQty").value)), cost = unitCostFromForm(), price = num($("fPrice").value);
+  if (!name) { toast("Enter the item name"); $("fName").focus(); return; }
+  if (qty <= 0) { toast("Enter how many you bought"); $("fQty").focus(); return; }
+  if (cost <= 0) { toast("Enter what you paid"); $("fCost").focus(); return; }
+  if (price <= 0) { toast("Enter your selling price"); $("fPrice").focus(); return; }
+  const base = editingId ? itemById(editingId) : null;
+  const item = { id: editingId || uid(), name, unit: $("fUnit").value, qty, cost: Math.round(cost * 100) / 100, price, createdAt: base ? base.createdAt : Date.now() };
+  try { await put("stock", item); toast(editingId ? "Item updated" : "Added to stock"); resetForm(); } catch(e) {}
+});
+
+function renderStock(){
+  const sold = soldMap();
+  const el = $("stockTable");
+  if (!S.stock.length) { el.innerHTML = '<div class="empty">Nothing in stock yet. Add your first item above.</div>'; $("stockSummary").textContent = ""; return; }
+  let inv = 0, leftCost = 0;
+  const rows = S.stock.slice().sort((a,b) => a.name.localeCompare(b.name)).map(i => {
+    const s = sold[i.id] || 0, left = num(i.qty) - s, m = num(i.price) - num(i.cost);
+    inv += num(i.qty) * num(i.cost); leftCost += Math.max(left, 0) * num(i.cost);
+    return '<tr><td><b>' + esc(i.name) + '</b><br><span class="small muted">per ' + esc(i.unit) + '</span></td>' +
+      '<td>' + i.qty + '</td><td>' + s + '</td><td class="' + (left <= 0 ? "neg" : "") + '"><b>' + left + '</b></td>' +
+      '<td>' + inr2(num(i.cost)) + '</td><td>' + inr2(num(i.price)) + '</td>' +
+      '<td class="secret"><span class="real"><span class="pill ' + (m >= 0 ? "pos" : "neg") + '">' + inr2(m) + ' · ' + pct(m, num(i.price)).toFixed(0) + '%</span></span></td>' +
+      '<td><button class="btn link" data-rs="' + esc(i.id) + '">Restock</button><button class="btn link" data-ed="' + esc(i.id) + '">Edit</button><button class="btn link" data-dl="' + esc(i.id) + '">Delete</button></td></tr>';
+  }).join("");
+  el.innerHTML = '<table><thead><tr><th>Item</th><th>Bought</th><th>Sold</th><th>Left</th><th>Cost / unit</th><th>Sell price</th><th>Margin / unit</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+  $("stockSummary").textContent = "Invested " + inr(inv) + " · Unsold stock worth " + inr(leftCost) + " at cost";
+}
+$("stockTable").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.ed) {
+    const i = itemById(b.dataset.ed); if (!i) return;
+    editingId = i.id; $("fName").value = i.name; $("fQty").value = i.qty; $("fUnit").value = i.unit;
+    setCostMode("unit"); $("fCost").value = i.cost; $("fPrice").value = i.price; preview();
+    $("formTitle").textContent = "Edit " + i.name; $("saveItem").textContent = "Save changes"; $("cancelEdit").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" }); $("fName").focus();
+  }
+  if (b.dataset.dl) {
+    const i = itemById(b.dataset.dl); if (!i) return;
+    if (await askConfirm({ title: "Delete " + i.name + "?", text: "It will be removed from your stock list. Past bills keep their numbers." })) { await remove("stock", i.id); toast("Item deleted"); }
+  }
+  if (b.dataset.rs) {
+    const i = itemById(b.dataset.rs); if (!i) return;
+    restockId = i.id; $("rsTitle").textContent = "Restock " + i.name; $("rsQty").value = ""; $("rsCost").value = "";
+    $("rsNote").textContent = "Current cost " + inr2(num(i.cost)) + " per " + i.unit + ". New stock is averaged in.";
+    $("restockDlg").showModal(); $("rsQty").focus();
+  }
+});
+$("rsCancel").addEventListener("click", () => $("restockDlg").close());
+$("rsSave").addEventListener("click", async () => {
+  const i = itemById(restockId); const q = Math.round(num($("rsQty").value)), c = num($("rsCost").value);
+  if (!i || q <= 0 || c <= 0) { toast("Enter quantity and amount paid"); return; }
+  const totalQty = num(i.qty) + q;
+  const avg = (num(i.qty) * num(i.cost) + c) / totalQty;
+  try { await put("stock", Object.assign({}, i, { qty: totalQty, cost: Math.round(avg * 100) / 100 })); $("restockDlg").close(); toast("Restocked " + q + " " + i.unit); } catch(e) {}
+});
+
+/* ---------- REPORT ---------- */
+$("repDate").value = today();
+$("repDate").addEventListener("change", () => { renderReport(); });
+function renderReport(){
+  const d = $("repDate").value || today();
+  const f = dayFigures(d);
+  const isToday = d === today();
+  const cls = f.net > 0 ? "pos" : f.net < 0 ? "neg" : "zero";
+  let verdict;
+  if (!f.sales.length && !f.exps.length) {
+    verdict = '<div class="verdict zero"><p class="lead">No sales recorded ' + (isToday ? "yet today" : "on " + prettyDate(d)) + '.</p><p class="small muted" style="margin:6px 0 0">Bills you complete in the Sell tab show up here.</p></div>';
+  } else {
+    verdict = '<div class="verdict ' + cls + '"><p class="lead">' + (isToday ? "Today" : prettyDate(d)) + ' you ' + (f.net >= 0 ? "made a profit of" : "are at a loss of") + '</p>' +
+      '<div class="amt">' + inr(Math.abs(f.net)) + '</div>' +
+      '<p class="small" style="margin:0">' + inr(f.rev) + ' sales − ' + inr(f.cost) + ' cost of crackers sold' + (f.exp ? ' − ' + inr(f.exp) + ' expenses' : '') + '</p></div>';
+  }
+  const figs = '<div class="figs">' +
+    '<div><b>' + inr(f.rev) + '</b><span>Sales</span></div>' +
+    '<div><b>' + inr(f.cost) + '</b><span>Purchase cost of what sold</span></div>' +
+    '<div><b class="' + (f.gross >= 0 ? "pos" : "neg") + '">' + inr(f.gross) + '</b><span>Margin before expenses · ' + pct(f.gross, f.rev).toFixed(1) + '%</span></div>' +
+    '<div><b>' + f.sales.length + '</b><span>Bills</span></div>' +
+    '<div><b>' + inr(f.cash) + '</b><span>Cash to count</span></div>' +
+    '<div><b>' + inr(f.upi) + '</b><span>UPI / card</span></div></div>';
+  const items = Object.values(f.items).sort((a,b) => b.rev - a.rev);
+  let table = "";
+  if (items.length) {
+    table = '<div class="panel"><h3>What sold</h3><div class="tbl-wrap"><table><thead><tr><th>Item</th><th>Qty</th><th>Bought at / unit</th><th>Sold at / unit (avg)</th><th>Sales</th><th>Margin</th><th>Margin %</th></tr></thead><tbody>' +
+      items.map(r => { const m = r.rev - r.cost; return '<tr><td>' + esc(r.name) + '</td><td>' + r.qty + ' ' + esc(r.unit) + '</td><td>' + inr2(r.cost / r.qty) + '</td><td>' + inr2(r.rev / r.qty) + '</td><td>' + inr(r.rev) + '</td><td class="' + (m >= 0 ? "pos" : "neg") + '">' + inr(m) + '</td><td>' + pct(m, r.rev).toFixed(1) + '%</td></tr>'; }).join("") +
+      '</tbody><tfoot><tr><td>Total</td><td></td><td></td><td></td><td>' + inr(f.rev) + '</td><td class="' + (f.gross >= 0 ? "pos" : "neg") + '">' + inr(f.gross) + '</td><td>' + pct(f.gross, f.rev).toFixed(1) + '%</td></tr></tfoot></table></div></div>';
+  }
+  // Stock position at the end of the chosen day
+  let stockTbl = "";
+  if (S.stock.length) {
+    const upTo = {};
+    S.sales.forEach(s => { if (s.date <= d) (s.lines || []).forEach(l => { upTo[l.itemId] = (upTo[l.itemId] || 0) + num(l.qty); }); });
+    let tB = 0, tD = 0, tU = 0, tL = 0;
+    const rows = S.stock.slice().sort((a,b) => a.name.localeCompare(b.name)).map(i => {
+      const day = f.items[i.id] ? f.items[i.id].qty : 0, up = upTo[i.id] || 0, left = num(i.qty) - up;
+      tB += num(i.qty); tD += day; tU += up; tL += left;
+      return '<tr><td>' + esc(i.name) + '<br><span class="small muted">in ' + esc(i.unit) + '</span></td><td>' + i.qty + '</td><td>' + (day ? '<b>' + day + '</b>' : '<span class="muted">0</span>') + '</td><td>' + up + '</td><td class="' + (left <= 0 ? "neg" : "") + '"><b>' + left + '</b></td></tr>';
+    }).join("");
+    stockTbl = '<div class="panel"><h3>Stock at end of ' + (isToday ? "today" : prettyDate(d)) + '</h3><div class="tbl-wrap"><table><thead><tr><th>Item</th><th>Bought</th><th>Sold ' + (isToday ? "today" : "this day") + '</th><th>Sold so far</th><th>Left</th></tr></thead><tbody>' + rows +
+      '</tbody><tfoot><tr><td>Total</td><td>' + tB + '</td><td>' + tD + '</td><td>' + tU + '</td><td>' + tL + '</td></tr></tfoot></table></div></div>';
+  }
+  $("repBody").innerHTML = verdict + figs + table + stockTbl;
+  $("expList").innerHTML = f.exps.length ? '<table><tbody>' + f.exps.map(e => '<tr><td>' + esc(e.label) + '</td><td>' + inr2(num(e.amount)) + '</td><td style="width:1%"><button class="btn link" data-exdel="' + esc(e.id) + '">Remove</button></td></tr>').join("") + '</tbody></table>' : '<p class="small muted" style="margin:0">No expenses added for this day.</p>';
+  renderSeason();
+}
+$("addExp").addEventListener("click", async () => {
+  const label = $("exLabel").value.trim() || "Expense", amount = num($("exAmt").value);
+  if (amount <= 0) { toast("Enter the amount"); $("exAmt").focus(); return; }
+  try { await put("expenses", { id: uid(), date: $("repDate").value || today(), label, amount }); $("exLabel").value = ""; $("exAmt").value = ""; toast("Expense added"); } catch(e) {}
+});
+$("expList").addEventListener("click", e => { const b = e.target.closest("[data-exdel]"); if (b) remove("expenses", b.dataset.exdel); });
+
+function renderSeason(){
+  if (!S.stock.length) { $("seasonBody").innerHTML = ""; return; }
+  const sold = soldMap();
+  let invested = 0, leftCost = 0, leftValue = 0;
+  S.stock.forEach(i => { const left = Math.max(num(i.qty) - (sold[i.id] || 0), 0); invested += num(i.qty) * num(i.cost); leftCost += left * num(i.cost); leftValue += left * num(i.price); });
+  let rev = 0, cost = 0; S.sales.forEach(s => { const t = saleTotals(s); rev += t.rev; cost += t.cost; });
+  const exp = S.expenses.reduce((a, e) => a + num(e.amount), 0);
+  const spent = invested + exp;
+  const cashPos = rev - spent;
+  const earned = rev - cost - exp;
+  const recovered = Math.min(pct(rev, spent), 100);
+  const ifAllSold = earned + (leftValue - leftCost);
+  $("seasonBody").innerHTML = '<div class="panel"><h2>Whole season so far</h2>' +
+    '<p class="muted small">Daily profit counts only what you sold. This view tells you whether the money you put in has come back yet.</p>' +
+    '<div class="figs">' +
+      '<div><b>' + inr(spent) + '</b><span>Money spent (stock ' + inr(invested) + (exp ? ' + expenses ' + inr(exp) : '') + ')</span></div>' +
+      '<div><b>' + inr(rev) + '</b><span>Money taken in</span></div>' +
+      '<div><b class="' + (earned >= 0 ? "pos" : "neg") + '">' + inr(earned) + '</b><span>Profit on what you sold</span></div>' +
+      '<div><b>' + inr(leftCost) + '</b><span>Unsold stock at cost</span></div>' +
+    '</div>' +
+    '<div class="row spread small"><span>Investment recovered</span><b>' + recovered.toFixed(0) + '%</b></div>' +
+    '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + recovered.toFixed(0) + '" aria-label="Investment recovered"><i class="' + (cashPos >= 0 ? "done" : "") + '" style="width:' + recovered + '%"></i></div>' +
+    '<p class="small" style="margin-top:8px">' + (cashPos >= 0
+      ? 'You have got back everything you spent, plus <b class="pos">' + inr(cashPos) + '</b>. Anything you sell from here is extra profit.'
+      : 'You need <b>' + inr(-cashPos) + '</b> more in sales to get your money back. If the rest sells at your listed prices, the season ends at <b class="' + (ifAllSold >= 0 ? "pos" : "neg") + '">' + inr(ifAllSold) + '</b> ' + (ifAllSold >= 0 ? "profit" : "loss") + '.') + '</p></div>';
+}
+
+function saveFile(name, text, type){
+  const blob = new Blob([text], { type: type });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+$("exportCsv").addEventListener("click", async () => {
+  const d = $("repDate").value || today(); const f = dayFigures(d);
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [["Bill time","Payment","Item","Qty","Unit","Cost per unit","Sold at per unit","Sales","Margin"].map(q).join(",")];
+  f.sales.slice().sort((a,b) => a.ts - b.ts).forEach(s => (s.lines || []).forEach(l => {
+    lines.push([new Date(s.ts).toLocaleTimeString("en-IN"), s.pay, l.name, l.qty, l.unit || "", l.cost, l.price, (l.qty*l.price).toFixed(2), (l.qty*(l.price-l.cost)).toFixed(2)].map(q).join(","));
+  }));
+  f.exps.forEach(e => lines.push(["","expense",e.label,"","","","",(-num(e.amount)).toFixed(2),(-num(e.amount)).toFixed(2)].map(q).join(",")));
+  saveFile("cracker-sales-" + d + ".csv", "\ufeff" + lines.join("\n"), "text/csv");
+});
+
+/* ---------- PIN lock ---------- */
+const PIN_KEY = "cracker-ledger-pin";
+const AWAY_LIMIT_MS = 60 * 1000; // lock again if the app was in the background for over a minute
+let pinRec = null, hiddenAt = 0, failCount = 0, blockedUntil = 0;
+try { pinRec = JSON.parse(localStorage.getItem(PIN_KEY) || "null"); } catch(e) { pinRec = null; }
+
+async function hashPin(pin, salt){
+  const text = salt + ":" + pin + ":cracker-ledger";
+  if (window.crypto && crypto.subtle && window.TextEncoder) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+  let h = 2166136261; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return "f" + h.toString(16);
+}
+async function pinMatches(pin){ return !!pinRec && (await hashPin(pin, pinRec.salt)) === pinRec.hash; }
+const validPin = p => /^[0-9]{4,8}$/.test(p);
+
+function lockApp(){
+  if (!pinRec) return;
+  document.body.classList.add("locked"); document.body.classList.add("masked");
+  $("eyeBtn").textContent = "Show numbers"; $("eyeBtn").setAttribute("aria-pressed", "false");
+  if ($("colourDlg").open) $("colourDlg").close();
+  $("lockScreen").setAttribute("aria-hidden", "false");
+  $("lockPin").value = ""; $("lockErr").textContent = "";
+  setTimeout(() => $("lockPin").focus(), 50);
+}
+function unlockApp(){
+  document.body.classList.remove("locked");
+  $("lockScreen").setAttribute("aria-hidden", "true");
+  failCount = 0;
+}
+async function tryUnlock(){
+  const now = Date.now();
+  if (now < blockedUntil) { $("lockErr").textContent = "Too many tries. Wait " + Math.ceil((blockedUntil - now) / 1000) + " seconds."; return; }
+  const pin = $("lockPin").value.trim();
+  if (await pinMatches(pin)) { unlockApp(); return; }
+  failCount++; $("lockPin").value = "";
+  if (failCount >= 5) { blockedUntil = Date.now() + 30000; failCount = 0; $("lockErr").textContent = "Wrong PIN 5 times. Wait 30 seconds."; }
+  else $("lockErr").textContent = "Wrong PIN. Try again.";
+  $("lockPin").focus();
+}
+$("unlockBtn").addEventListener("click", tryUnlock);
+$("lockPin").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+$("lockBtn").addEventListener("click", lockApp);
+$("forgotPin").addEventListener("click", async () => {
+  document.body.classList.remove("locked"); // the confirm dialog needs the page visible behind it
+  document.querySelector("main").style.visibility = "hidden";
+  document.querySelector("header").style.visibility = "hidden";
+  document.querySelector("nav").style.visibility = "hidden";
+  const yes = await askConfirm({ title: "Reset the app?", text: "Without the PIN, the only way in is to delete all stock, sales and expenses on this phone and start fresh. You can then load your latest backup with Restore from backup.", requireWord: true, okLabel: "Delete and reset" });
+  ["main","header","nav"].forEach(sel => document.querySelector(sel).style.visibility = "");
+  if (!yes) { lockApp(); return; }
+  S.stock = []; S.sales = []; S.expenses = []; cart = [];
+  saveLocal();
+  try { localStorage.removeItem(PIN_KEY); } catch(e) {}
+  pinRec = null; refreshPinUI(); unlockApp(); renderAll();
+  toast("App reset. Restore your backup from the Stock tab.");
+});
+
+function refreshPinUI(){
+  const on = !!pinRec;
+  $("pinSet").hidden = on; $("pinChange").hidden = !on; $("pinRemove").hidden = !on; $("lockBtn").hidden = !on;
+  $("pinState").textContent = on
+    ? "PIN is on. The app asks for it when opened, after a minute in the background, or when you tap Lock. If you forget it, the only way back in is to reset the app, so keep nightly backups."
+    : "No PIN set. Anyone who opens the app on this phone can see your sales and profit.";
+}
+
+function openPinDlg(mode){
+  $("pdTitle").textContent = mode === "set" ? "Set a PIN" : mode === "change" ? "Change PIN" : "Remove PIN";
+  $("pdCurWrap").hidden = mode === "set";
+  $("pdNewWrap").hidden = mode === "remove";
+  $("pdOk").textContent = mode === "remove" ? "Remove PIN" : "Save PIN";
+  ["pdCur","pdNew","pdNew2"].forEach(id => $(id).value = ""); $("pdErr").textContent = "";
+  $("pinDlg").dataset.mode = mode;
+  $("pinDlg").showModal();
+  (mode === "set" ? $("pdNew") : $("pdCur")).focus();
+}
+$("pinSet").addEventListener("click", () => openPinDlg("set"));
+$("pinChange").addEventListener("click", () => openPinDlg("change"));
+$("pinRemove").addEventListener("click", () => openPinDlg("remove"));
+$("pdCancel").addEventListener("click", () => $("pinDlg").close());
+$("pdOk").addEventListener("click", async () => {
+  const mode = $("pinDlg").dataset.mode, err = $("pdErr");
+  if (mode !== "set" && !(await pinMatches($("pdCur").value.trim()))) { err.textContent = "Current PIN is wrong."; return; }
+  if (mode === "remove") {
+    try { localStorage.removeItem(PIN_KEY); } catch(e) {}
+    pinRec = null; refreshPinUI(); $("pinDlg").close(); toast("PIN removed"); return;
+  }
+  const p1 = $("pdNew").value.trim(), p2 = $("pdNew2").value.trim();
+  if (!validPin(p1)) { err.textContent = "Use 4 to 8 digits."; return; }
+  if (p1 !== p2) { err.textContent = "The two PINs don't match."; return; }
+  const salt = Array.from(crypto.getRandomValues ? crypto.getRandomValues(new Uint8Array(8)) : [Date.now() % 256]).map(b => b.toString(16)).join("");
+  const rec = { salt, hash: await hashPin(p1, salt) };
+  try { localStorage.setItem(PIN_KEY, JSON.stringify(rec)); }
+  catch(e) { err.textContent = "Couldn't save the PIN on this phone."; return; }
+  pinRec = rec; refreshPinUI(); $("pinDlg").close();
+  toast(mode === "set" ? "PIN set. Tap Lock to test it." : "PIN changed");
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) hiddenAt = Date.now();
+  else if (pinRec && hiddenAt && Date.now() - hiddenAt > AWAY_LIMIT_MS) lockApp();
+});
+
+refreshPinUI();
+if (pinRec) lockApp();
+
+/* ---------- backup / restore ---------- */
+$("backupBtn").addEventListener("click", () => {
+  const data = { app: "cracker-ledger", version: 1, savedAt: new Date().toISOString(), stock: S.stock, sales: S.sales, expenses: S.expenses };
+  saveFile("cracker-backup-" + today() + ".json", JSON.stringify(data), "application/json");
+  toast("Backup downloaded");
+});
+$("restoreBtn").addEventListener("click", () => $("restoreFile").click());
+$("restoreFile").addEventListener("change", async e => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  let data;
+  try { data = JSON.parse(await file.text()); } catch(err) { toast("That file isn't a valid backup"); return; }
+  if (!data || !Array.isArray(data.stock) || !Array.isArray(data.sales)) { toast("That file isn't a cracker ledger backup"); return; }
+  const ok = await askConfirm({ title: "Restore this backup?", text: "It has " + data.stock.length + " items and " + data.sales.length + " bills. It will replace everything currently in the app.", okLabel: "Restore" });
+  if (!ok) return;
+  S.stock = data.stock; S.sales = data.sales; S.expenses = Array.isArray(data.expenses) ? data.expenses : [];
+  cart = []; saveLocal(); renderAll(); toast("Backup restored");
+});
+
+/* ---------- BILLS ---------- */
+$("billDate").value = today();
+$("billDate").addEventListener("change", renderBills);
+function renderBills(){
+  const d = $("billDate").value || today();
+  const list = S.sales.filter(s => s.date === d).sort((a,b) => b.ts - a.ts);
+  const el = $("billList");
+  if (!list.length) { el.innerHTML = '<div class="panel empty">No bills on ' + prettyDate(d) + '.</div>'; return; }
+  el.innerHTML = list.map(s => {
+    const t = saleTotals(s);
+    return '<div class="panel"><div class="row spread"><div><b class="num" style="font-size:1.25rem">' + inr2(t.rev) + '</b> <span class="small muted">' + new Date(s.ts).toLocaleTimeString("en-IN", {hour:"numeric", minute:"2-digit"}) + ' · ' + (s.pay === "upi" ? "UPI / card" : "Cash") + '</span></div>' +
+      '<button class="btn link" data-bdel="' + esc(s.id) + '">Delete bill</button></div>' +
+      '<div class="small" style="margin-top:6px">' + (s.lines || []).map(l => esc(l.name) + ' × ' + l.qty + ' @ ' + inr2(l.price)).join("<br>") + '</div>' +
+      '<div class="small muted" style="margin-top:6px">Margin ' + inr2(t.rev - t.cost) + '</div></div>';
+  }).join("");
+}
+$("billList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-bdel]"); if (!b) return;
+  if (await askConfirm({ title: "Delete this bill?", text: "Its crackers go back into stock and it's removed from the day report." })) { await remove("sales", b.dataset.bdel); toast("Bill deleted"); }
+});
+
+/* ---------- in-page confirm (browser pop-ups are blocked inside the artifact) ---------- */
+function askConfirm(opts){
+  return new Promise(resolve => {
+    const dlg = $("confirmDlg"), ok = $("cfOk"), word = $("cfWord");
+    $("cfTitle").textContent = opts.title;
+    $("cfText").textContent = opts.text;
+    ok.textContent = opts.okLabel || "Delete";
+    $("cfWordWrap").hidden = !opts.requireWord;
+    word.value = "";
+    ok.disabled = !!opts.requireWord;
+    let done = false;
+    const finish = v => { if (done) return; done = true; word.oninput = ok.onclick = $("cfCancel").onclick = dlg.onclose = null; if (dlg.open) dlg.close(); resolve(v); };
+    word.oninput = () => { ok.disabled = word.value.trim().toUpperCase() !== "CLEAR"; };
+    ok.onclick = () => finish(true);
+    $("cfCancel").onclick = () => finish(false);
+    dlg.onclose = () => finish(false);
+    dlg.showModal();
+    (opts.requireWord ? word : $("cfCancel")).focus();
+  });
+}
+
+/* ---------- clear data ---------- */
+async function wipe(cols){
+  if (db) {
+    for (const col of cols) {
+      const ids = S[col].map(x => x.id);
+      for (let i = 0; i < ids.length; i += 10) {
+        await Promise.all(ids.slice(i, i + 10).map(id => db.collection(col).doc(id).delete()));
+      }
+    }
+  } else {
+    cols.forEach(col => S[col] = []);
+    saveLocal(); renderData();
+  }
+}
+async function confirmWipe(cols, what, btn){
+  const yes = await askConfirm({ title: "Clear " + what + "?", text: "This permanently deletes " + what + ". It can't be undone.", requireWord: true, okLabel: "Clear" });
+  if (!yes) return;
+  btn.disabled = true;
+  try { await wipe(cols); cart = []; renderCart(); renderTiles(); toast("Cleared " + what); }
+  catch(e) { toast("Some data couldn't be deleted. Try again."); }
+  btn.disabled = false;
+}
+$("clearSales").addEventListener("click", e => confirmWipe(["sales","expenses"], "all sales and expenses", e.currentTarget));
+$("clearAll").addEventListener("click", e => confirmWipe(["stock","sales","expenses"], "all stock, sales and expenses", e.currentTarget));
+
+/* ---------- colour theme ---------- */
+const THEMES = {
+  mint:     { name: "Mint green", l: ["#DDF2DF","#1D3B24","#A9D8B0","#2E7D46"], d: ["#1F3D28","#E3F5E6","#36603F","#3E9A5A"] },
+  sky:      { name: "Sky blue",   l: ["#D9ECFA","#14324F","#A8CDEB","#1D4E89"], d: ["#1F3A55","#E3F0FB","#35587A","#3D72BE"] },
+  lavender: { name: "Lavender",   l: ["#E9E2F7","#2F2150","#C9B9EC","#5B3FA0"], d: ["#2E2547","#EEE8FA","#4A3D6E","#7A5FC4"] },
+  peach:    { name: "Peach",      l: ["#FDE4D3","#4A2412","#F2BFA0","#B3521E"], d: ["#47291A","#FBE9DD","#6B402A","#C9662E"] },
+  lemon:    { name: "Lemon",      l: ["#FBF3C8","#3D3305","#E8D98A","#7A6100"], d: ["#3D3612","#FBF5D6","#5E5320","#A88A10"] },
+  rose:     { name: "Rose pink",  l: ["#F9DFE6","#4A1626","#EDB3C3","#A3304F"], d: ["#45202B","#FBE7EC","#6B3443","#C24A6B"] },
+  aqua:     { name: "Aqua",       l: ["#D6F3F1","#123B39","#9FDCD7","#1C7A73"], d: ["#183C3A","#E0F6F4","#2F5E5B","#2E9990"] },
+  grey:     { name: "Light grey", l: ["#ECEEF0","#24292E","#CDD2D7","#3E4A56"], d: ["#2A2F35","#ECEEF0","#444B53","#6B7886"] }
+};
+const THEME_KEY = "cracker-ledger-theme";
+let themeId = "mint";
+try { const t = localStorage.getItem(THEME_KEY); if (t && THEMES[t]) themeId = t; } catch(e) {}
+const darkMq = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
+function applyTheme(){
+  const t = THEMES[themeId]; const v = (darkMq && darkMq.matches) ? t.d : t.l;
+  const st = document.documentElement.style;
+  st.setProperty("--head-bg", v[0]); st.setProperty("--head-ink", v[1]); st.setProperty("--head-line", v[2]); st.setProperty("--red", v[3]);
+  document.querySelectorAll(".swatch").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.theme === themeId)));
+}
+function renderSwatches(){
+  $("swatches").innerHTML = Object.entries(THEMES).map(([id, t]) =>
+    '<button class="swatch" data-theme="' + id + '" aria-pressed="' + (id === themeId) + '"><i style="background:' + t.l[0] + ';border-color:' + t.l[3] + '"></i>' + t.name + '</button>').join("");
+}
+$("swatches").addEventListener("click", e => {
+  const b = e.target.closest(".swatch"); if (!b) return;
+  themeId = b.dataset.theme;
+  try { localStorage.setItem(THEME_KEY, themeId); } catch(err) {}
+  applyTheme();
+});
+$("colourBtn").addEventListener("click", () => $("colourDlg").showModal());
+$("colourDone").addEventListener("click", () => $("colourDlg").close());
+if (darkMq && darkMq.addEventListener) darkMq.addEventListener("change", applyTheme);
+renderSwatches(); applyTheme();
+
+/* ---------- hide / show private numbers ---------- */
+$("eyeBtn").addEventListener("click", () => {
+  const masked = document.body.classList.toggle("masked");
+  $("eyeBtn").textContent = masked ? "Show numbers" : "Hide numbers";
+  $("eyeBtn").setAttribute("aria-pressed", String(!masked));
+});
+
+/* ---------- header + render ---------- */
+function renderHeader(){
+  const f = dayFigures(today());
+  $("hdrSales").textContent = inr(f.rev);
+  $("hdrProfit").textContent = inr(f.net);
+}
+function renderData(){ renderHeader(); renderTiles(); renderStock(); renderReport(); renderBills(); if (cart.length) updateCartTotals(); }
+function renderAll(){ renderData(); renderCart(); }
+
+connect();
+if (navigator.storage && navigator.storage.persist) { navigator.storage.persist().catch(() => {}); }
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+})();
+</script>
+</body>
+</html>
