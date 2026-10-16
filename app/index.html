@@ -6,6 +6,7 @@
 <title>Cracker Stall Ledger</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#DDF2DF">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
@@ -13,188 +14,275 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Hind:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#FFF8EE; --surface:#FFFFFF; --ink:#2A1A12; --muted:#7A6455; --line:#EBDCCB;
-  --red:#2E7D46; --red-ink:#FFFFFF; --gold:#E7A11A; --gold-soft:#FCEBC4;
-  --profit:#1E7A47; --profit-soft:#DDF1E5; --loss:#B42318; --loss-soft:#FBE1DD;
-  --focus:#1B5FD1;
+  --bg:#F3F5F2; --surface:#FFFFFF; --sunk:#EBEFEA; --ink:#1B231E; --muted:#5B6860; --line:#DCE2DC;
+  --accent:#2E7D46; --accent-ink:#FFFFFF;
   --head-bg:#DDF2DF; --head-ink:#1D3B24; --head-line:#A9D8B0;
-  color-scheme:light;
-  box-sizing:border-box;
+  --profit:#1E7A47; --profit-soft:#DDF1E5; --loss:#B42318; --loss-soft:#FBE1DD; --warn:#9A5B00;
+  --focus:#1B5FD1; --nav-h:64px; --shadow:0 -6px 24px rgba(20,35,25,.14);
+  color-scheme:light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#1A1210; --surface:#251A16; --ink:#F6EBDD; --muted:#B9A595; --line:#3E2E27;
-    --red:#3E9A5A; --red-ink:#FFFFFF; --gold:#F0B43A; --gold-soft:#3A2C12;
-    --profit:#4CC283; --profit-soft:#163223; --loss:#F07065; --loss-soft:#3D1A17;
-    --focus:#7FB0FF; color-scheme:dark;
+    --bg:#121815; --surface:#1B231E; --sunk:#161D19; --ink:#E9F0EB; --muted:#A3B1A8; --line:#2C3832;
+    --profit:#4CC283; --profit-soft:#163223; --loss:#F07065; --loss-soft:#3D1A17; --warn:#E6A63C;
+    --focus:#7FB0FF; --shadow:0 -6px 24px rgba(0,0,0,.5); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1A1210; --surface:#251A16; --ink:#F6EBDD; --muted:#B9A595; --line:#3E2E27;
-  --red:#3E9A5A; --red-ink:#FFFFFF; --gold:#F0B43A; --gold-soft:#3A2C12;
-  --profit:#4CC283; --profit-soft:#163223; --loss:#F07065; --loss-soft:#3D1A17;
-  --focus:#7FB0FF; color-scheme:dark;
+  --bg:#121815; --surface:#1B231E; --sunk:#161D19; --ink:#E9F0EB; --muted:#A3B1A8; --line:#2C3832;
+  --profit:#4CC283; --profit-soft:#163223; --loss:#F07065; --loss-soft:#3D1A17; --warn:#E6A63C;
+  --focus:#7FB0FF; --shadow:0 -6px 24px rgba(0,0,0,.5); color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){ --head-bg:#1F3D28; --head-ink:#E3F5E6; --head-line:#36603F; }
-}
-:root[data-theme="dark"]{ --head-bg:#1F3D28; --head-ink:#E3F5E6; --head-line:#36603F; }
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hind",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5;padding-bottom:76px}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hind",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);-webkit-tap-highlight-color:transparent}
+body.has-bill{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 88px)}
 h1,h2,h3,.num{font-family:"Baloo 2","Hind",system-ui,sans-serif}
-h2{font-size:1.45rem;margin:0 0 .25rem;font-weight:700;line-height:1.2}
-h3{font-size:1.1rem;margin:0 0 .5rem;font-weight:600}
-p{margin:0 0 .75rem}
+h2{font-size:1.35rem;margin:0;font-weight:700;line-height:1.2}
+h3{font-size:1.05rem;margin:0 0 6px;font-weight:600;line-height:1.3}
+p{margin:0 0 10px}
 button,input,select{font:inherit;color:inherit}
+button{touch-action:manipulation}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-.muted{color:var(--muted)}
-.small{font-size:.875rem}
+.muted{color:var(--muted)} .small{font-size:.875rem} .pos{color:var(--profit)} .neg{color:var(--loss)}
+svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* header */
-.top{background:var(--head-bg);color:var(--head-ink);border-bottom:3px solid var(--head-line)}
-.top-in{max-width:1080px;margin:0 auto;padding:14px 16px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.brand{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:1.5rem;line-height:1;margin:0}
-.brand small{display:block;font-family:"Hind",sans-serif;font-weight:500;font-size:.8rem;opacity:.85;margin-top:4px}
-.today-strip{display:flex;gap:18px;font-size:.85rem}
-.today-strip div{line-height:1.15}
-.today-strip b{display:block;font-family:"Baloo 2",sans-serif;font-size:1.25rem;font-weight:700}
-.today-strip{align-items:center}
-.eye{background:transparent;color:var(--head-ink);border:1px solid var(--head-line);border-radius:10px;padding:6px 12px;min-height:40px;font-weight:600;cursor:pointer}
-.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:12px 0 16px}
-.swatch{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 10px;cursor:pointer;text-align:left;font-weight:600;font-size:.9rem;min-height:48px}
-.swatch i{width:28px;height:28px;border-radius:50%;flex:none;border:2px solid}
-.swatch[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-.lock{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px))}
-body.locked .lock{display:flex}
-body.locked > header, body.locked > nav, body.locked > main{display:none}
-.lock-card{width:min(360px,100%);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;text-align:center}
-.lock-card h2{margin-bottom:6px}
-.pin-in{font-family:"Baloo 2",sans-serif;font-size:1.6rem!important;letter-spacing:.5em;text-align:center;margin:14px 0 6px}
-.lock-err{color:var(--loss);font-weight:600;font-size:.9rem;min-height:1.4em;margin:0 0 10px}
+.top{background:var(--head-bg);color:var(--head-ink);border-bottom:1px solid var(--head-line)}
+.top-in{max-width:1080px;margin:0 auto;padding:12px 16px 4px;display:flex;align-items:center;gap:12px}
+.ttl{flex:1;min-width:0}
+.ttl h1{font-size:1.3rem;font-weight:800;margin:0;line-height:1.1}
+.ttl-btn{display:inline-flex;align-items:center;gap:8px;max-width:100%;border:0;background:none;color:inherit;font:inherit;padding:6px 0;cursor:pointer;text-align:left}
+.ttl-btn span{overflow:hidden;min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
+.ttl-btn .i{width:17px;height:17px;opacity:.6}
+.ttl p{margin:2px 0 0;font-size:.78rem;display:flex;align-items:center;gap:6px;opacity:.85}
+.ttl p::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.7}
+.icon-btn{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--head-line);border-radius:12px;background:transparent;color:inherit;cursor:pointer}
+.icon-btn[aria-pressed="true"]{background:var(--head-ink);color:var(--head-bg);border-color:var(--head-ink)}
+.today{max-width:1080px;margin:0 auto;padding:6px 16px 12px;display:flex;gap:22px}
+.today span{display:block;font-size:.78rem;opacity:.8}
+.today b{font-family:"Baloo 2",sans-serif;font-size:1.25rem;font-weight:700;line-height:1.15}
 .masked .secret .real{display:none}
 .masked .secret::after{content:"***";letter-spacing:.08em}
 
 /* nav */
-nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom,0px)}
-nav.tabs button{flex:1;border:0;background:none;padding:10px 4px 12px;font-weight:600;font-size:.9rem;color:var(--muted);cursor:pointer;border-top:3px solid transparent}
-nav.tabs button[aria-selected="true"]{color:var(--red);border-top-color:var(--red)}
-@media (min-width:760px){
-  body{padding-bottom:0}
-  nav.tabs{position:sticky;top:0;bottom:auto;border-top:0;border-bottom:1px solid var(--line);justify-content:center;padding-bottom:0}
-  nav.tabs button{flex:0 0 auto;padding:12px 22px;border-top:0;border-bottom:3px solid transparent}
-  nav.tabs button[aria-selected="true"]{border-bottom-color:var(--red)}
-}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:.74rem;font-weight:600;color:var(--muted);cursor:pointer;position:relative}
+nav.tabs button[aria-selected="true"]{color:var(--accent)}
+nav.tabs button[aria-selected="true"]::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
 
-main{max-width:1080px;margin:0 auto;padding:18px 16px 32px}
+main{max-width:1080px;margin:0 auto;padding:14px 16px 24px}
 section[hidden]{display:none}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 12px}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.block > h3:first-child{margin-bottom:8px}
 
-/* forms */
-label{display:block;font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:4px}
-input[type=text],input[type=number],input[type=date],input[type=search],select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);min-height:44px}
-.grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.seg button{border:0;background:var(--bg);padding:8px 12px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--gold-soft);color:var(--ink)}
-.btn{border:0;border-radius:10px;padding:10px 16px;min-height:44px;font-weight:600;cursor:pointer;background:var(--red);color:var(--red-ink)}
+/* buttons + inputs */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:10px 18px;min-height:48px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn.link{background:none;border:0;color:var(--red);padding:6px 8px;min-height:auto}
-.btn.danger{background:transparent;color:var(--loss);border:1px solid var(--loss)}
-.btn.big{width:100%;font-size:1.1rem;padding:14px}
+.btn.soft{background:var(--sunk);color:var(--ink)}
+.btn.danger{background:transparent;color:var(--loss);border:1.5px solid var(--loss)}
+.btn.wide{width:100%}
+.txt-btn{border:0;background:none;color:var(--accent);font-weight:600;padding:8px 6px;min-height:40px;cursor:pointer}
+.txt-btn.neg{color:var(--loss)}
+label{display:block;font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=number],input[type=date],input[type=search],input[type=password],select{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);min-height:48px;font-size:16px}
+input:focus{border-color:var(--accent);outline:none}
+.field{margin-bottom:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;background:var(--sunk);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;padding:8px 10px;min-height:40px;border-radius:9px;cursor:pointer;font-size:.9rem;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.spread{justify-content:space-between}
 
 /* sell */
-.sell-layout{display:grid;gap:16px}
-@media (min-width:900px){.sell-layout{grid-template-columns:1.4fr 1fr;align-items:start}.cart{position:sticky;top:64px}}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px}
-.tile{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:92px}
-.tile:hover{border-color:var(--gold)}
-.search-row{display:flex;gap:10px;align-items:stretch}
-.search-row input{flex:1}
-.mic{flex:none;display:flex;align-items:center;gap:8px;border:0;border-radius:10px;padding:0 16px;min-height:48px;background:var(--red);color:var(--red-ink);font-weight:600;cursor:pointer}
-.mic svg{width:22px;height:22px}
+.sell-layout{display:block}
+.search-bar{position:sticky;top:0;z-index:15;background:var(--bg);padding:8px 0 10px;margin-top:-8px;display:flex;gap:10px}
+.search-bar input{flex:1}
+.mic{flex:none;display:flex;align-items:center;gap:8px;border:0;border-radius:12px;padding:0 16px;min-height:48px;background:var(--accent);color:var(--accent-ink);font-weight:600;cursor:pointer}
 .mic.on{background:var(--loss);animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.7}}
-@media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
-.voice-out{margin-top:10px;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:.92rem}
+.voice-out{margin:0 0 10px;background:var(--surface);border:1.5px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:.92rem}
 .voice-out[hidden]{display:none}
 .voice-out .heard{color:var(--muted);font-style:italic}
-.tile .nm{font-weight:600;line-height:1.25}
-.tile-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
-.tile .tot{font-size:.72rem;color:var(--muted);white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:0 7px;line-height:1.6;flex:none}
-.tile .pr{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:1.15rem;margin-top:auto}
-.tile .lf{font-size:.8rem;color:var(--muted)}
-.tile.out{opacity:.55}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:560px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tile{position:relative;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 12px 10px;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-height:118px;transition:transform .08s}
+.tile:active{transform:scale(.97)}
+.tile.in{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.tile.out{opacity:.5}
+.tile-top{display:block}
+.tile-top::after{content:"";display:table;clear:both}
+.tile .nm{font-weight:600;line-height:1.2;font-size:1rem;overflow-wrap:normal;word-break:normal;hyphens:manual}
+.tile .tot{float:right;margin:1px 0 2px 6px;font-size:.7rem;color:var(--muted);white-space:nowrap;background:var(--sunk);border-radius:999px;padding:1px 7px}
+.tile .pr{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:1.3rem;line-height:1;margin-top:auto}
+.tile .lf{font-size:.78rem;color:var(--muted)}
 .tile .lf.low{color:var(--loss);font-weight:600}
-.cart-line{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
-.cart-line:last-child{border-bottom:0}
-.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px}
-.qty button{border:0;background:none;width:38px;height:38px;font-size:1.2rem;cursor:pointer}
-.qty input{width:52px;text-align:center;border:0;background:none;min-height:38px;padding:0}
-.price-in{width:100px!important;min-height:38px!important;padding:6px 8px!important}
-.warn{font-size:.8rem;color:var(--loss);font-weight:600}
-.bill-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:6px;border-top:2px solid var(--ink)}
-.bill-total .num{font-size:1.8rem;font-weight:800}
+.meter{display:block;height:5px;background:var(--sunk);border-radius:999px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.meter i.low{background:var(--loss)}
+.badge{position:absolute;right:10px;bottom:10px;height:28px;padding:0 10px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;white-space:nowrap}
 
-/* tables */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;font-size:.92rem}
-th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-weight:600;color:var(--muted);font-size:.8rem}
-th:first-child,td:first-child{text-align:left;white-space:normal;min-width:130px}
-tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
-.pos{color:var(--profit)} .neg{color:var(--loss)}
-.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:600}
-.pill.pos{background:var(--profit-soft)} .pill.neg{background:var(--loss-soft)}
+/* bill bar + sheet (phone) */
+.bill-bar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 10px);z-index:25;
+  display:flex;align-items:center;gap:12px;border:0;border-radius:16px;padding:10px 12px 10px 16px;min-height:62px;background:var(--ink);color:var(--bg);box-shadow:var(--shadow);cursor:pointer;text-align:left}
+.bill-bar[hidden]{display:none}
+.bb-count{font-size:.85rem;opacity:.85;line-height:1.2}
+.bb-total{font-family:"Baloo 2",sans-serif;font-size:1.5rem;font-weight:800;margin-right:auto;line-height:1}
+.bb-cta{background:var(--accent);color:var(--accent-ink);border-radius:11px;padding:9px 14px;font-weight:600}
+.scrim{position:fixed;inset:0;background:rgba(10,20,14,.45);z-index:40}
+.scrim[hidden]{display:none}
+.cart{background:var(--surface)}
+.cart-head{display:flex;align-items:center;gap:8px;padding-bottom:6px}
+.cart-head h2{margin-right:auto}
+.grab{display:none}
+@media (max-width:899px){
+  .cart{position:fixed;left:0;right:0;bottom:0;z-index:45;max-height:88vh;max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;
+    border-radius:20px 20px 0 0;padding:6px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow);
+    transform:translateY(105%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
+  .cart.open{transform:none;visibility:visible;transition:transform .22s ease}
+  .grab{display:block;width:44px;height:5px;border-radius:99px;background:var(--line);margin:4px auto 10px}
+}
+@media (min-width:900px){
+  body,body.has-bill{padding-bottom:0}
+  .sell-layout{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start}
+  .cart{position:sticky;top:76px;border:1px solid var(--line);border-radius:16px;padding:16px}
+  .bill-bar,.sheet-close,.scrim{display:none!important}
+  nav.tabs{position:sticky;top:0;bottom:auto;height:auto;border-top:0;border-bottom:1px solid var(--line);justify-content:center;padding-bottom:0}
+  nav.tabs button{flex:0 0 auto;flex-direction:row;gap:8px;padding:14px 20px;font-size:.95rem}
+  nav.tabs button[aria-selected="true"]::before{top:auto;bottom:0;left:12px;right:12px;border-radius:3px 3px 0 0}
+  .search-bar{top:58px}
+}
+@media (prefers-reduced-motion:reduce){.cart,.cart.open{transition:none}.mic.on{animation:none}.tile{transition:none}}
+.cart-line{padding:12px 0;border-bottom:1px solid var(--line)}
+.cart-line:last-child{border-bottom:0}
+.cl-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.cl-name{font-weight:600}
+.cl-amt{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:1.1rem;white-space:nowrap}
+.cl-ctrl{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.qty{display:inline-flex;align-items:center;background:var(--sunk);border-radius:12px}
+.qty button{border:0;background:none;width:44px;height:44px;font-size:1.3rem;font-weight:600;cursor:pointer;color:var(--ink)}
+.qty input{width:54px;text-align:center;border:0;background:transparent;min-height:44px;padding:0;font-weight:700;font-size:16px}
+.price-wrap{display:flex;align-items:center;gap:6px}
+.price-in{width:96px!important;min-height:44px!important;padding:6px 10px!important;text-align:right}
+.warn{font-size:.8rem;color:var(--loss);font-weight:600;margin-top:4px}
+.warn:empty{display:none}
+.bill-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:4px;border-top:2px solid var(--ink)}
+.bill-total .num{font-size:2rem;font-weight:800;line-height:1}
+
+/* stock cards */
+.stock-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.sc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.sc-name{font-weight:600;font-size:1.05rem;line-height:1.25}
+.sc-left{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:1.15rem;white-space:nowrap}
+.sc-left small{font-family:"Hind",sans-serif;font-weight:500;font-size:.8rem;color:var(--muted)}
+.sc-figs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.sc-figs div{background:var(--sunk);border-radius:10px;padding:7px 9px}
+.sc-figs span{display:block;font-size:.72rem;color:var(--muted)}
+.sc-figs b{font-family:"Baloo 2",sans-serif;font-size:1rem;font-weight:700}
+.sc-acts{display:flex;gap:4px;margin-top:6px;justify-content:flex-end}
 
 /* report */
-.verdict{border-radius:16px;padding:22px 20px;margin-bottom:16px}
-.verdict.pos{background:var(--profit-soft)} .verdict.neg{background:var(--loss-soft)} .verdict.zero{background:var(--gold-soft)}
+.chips{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;min-height:40px;font-weight:600;cursor:pointer;font-size:.9rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips input[type=date]{width:auto;min-height:40px;border-radius:999px;padding:6px 12px;flex:1;min-width:150px;max-width:200px}
+.verdict{border-radius:20px;padding:20px 18px;margin-bottom:12px}
+.verdict.pos{background:var(--profit-soft)} .verdict.neg{background:var(--loss-soft)} .verdict.zero{background:var(--sunk)}
 .verdict .lead{font-size:1rem;margin:0}
-.verdict .amt{font-family:"Baloo 2",sans-serif;font-size:clamp(2.4rem,9vw,3.6rem);font-weight:800;line-height:1.05;margin:4px 0 6px}
+.verdict .amt{font-family:"Baloo 2",sans-serif;font-size:clamp(2.6rem,13vw,3.8rem);font-weight:800;line-height:1;margin:6px 0 8px}
 .verdict.pos .amt{color:var(--profit)} .verdict.neg .amt{color:var(--loss)}
-.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
-.figs div{background:var(--surface);padding:12px 14px}
-.figs b{display:block;font-family:"Baloo 2",sans-serif;font-size:1.3rem;font-weight:700}
-.figs span{font-size:.82rem;color:var(--muted)}
-.bar{height:12px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 4px}
-.bar i{display:block;height:100%;background:var(--gold);border-radius:999px}
+.verdict .eq{font-size:.9rem;margin:0}
+.figs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+@media (min-width:640px){.figs{grid-template-columns:repeat(3,1fr)}}
+.figs div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.figs b{display:block;font-family:"Baloo 2",sans-serif;font-size:1.3rem;font-weight:700;line-height:1.2}
+.figs span{font-size:.8rem;color:var(--muted)}
+.lrow{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+.lrow small{display:block;font-size:.8rem;color:var(--muted);font-weight:400}
+.lrow small.pos{color:var(--profit)} .lrow small.neg{color:var(--loss)}
+.lname{font-weight:600;min-width:0}
+.lnum{text-align:right;font-family:"Baloo 2",sans-serif;font-weight:700;font-size:1.05rem;white-space:nowrap}
+.lnum small{font-family:"Hind",sans-serif;font-weight:600}
+.lrow.total{border-top:2px solid var(--ink);border-bottom:0;margin-top:2px}
+.lrow .meter{margin-top:6px;width:120px}
+.bar{height:12px;background:var(--sunk);border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--warn);border-radius:999px}
 .bar i.done{background:var(--profit)}
-.empty{padding:28px 12px;text-align:center;color:var(--muted)}
-.status{font-size:.8rem;opacity:.9}
+.empty{padding:30px 14px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:1.05rem;margin-bottom:4px}
 
-dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:20px;width:min(420px,92vw)}
-dialog::backdrop{background:rgba(20,10,5,.45)}
-.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+/* more */
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;cursor:pointer;font-size:.75rem;font-weight:600;color:var(--muted);padding:4px 0}
+.swatch i{width:44px;height:44px;border-radius:50%;border:3px solid;display:block}
+.swatch[aria-pressed="true"]{color:var(--ink)}
+.swatch[aria-pressed="true"] i{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--ink)}
+
+/* dialogs */
+dialog{border:0;border-radius:20px;background:var(--surface);color:var(--ink);padding:20px;width:min(440px,94vw);max-height:90dvh;overflow-y:auto}
+dialog::backdrop{background:rgba(10,20,14,.5)}
+@media (max-width:599px){
+  dialog.sheet{margin:auto 0 0;width:100vw;max-width:100vw;border-radius:20px 20px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+}
+.dlg-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.dlg-acts .btn{flex:1}
+.preview{font-size:.9rem;background:var(--sunk);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.preview:empty{display:none}
+
+/* lock */
+.lock{position:fixed;inset:0;z-index:100;background:var(--head-bg);color:var(--head-ink);display:none;align-items:center;justify-content:center;padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px))}
+body.locked .lock{display:flex}
+body.locked > header, body.locked > nav, body.locked > main{display:none}
+.lock-card{width:min(360px,100%);background:var(--surface);color:var(--ink);border-radius:22px;padding:26px 22px;text-align:center}
+.pin-in{font-family:"Baloo 2",sans-serif;font-size:1.8rem!important;letter-spacing:.5em;text-align:center;margin:16px 0 6px}
+.lock-err{color:var(--loss);font-weight:600;font-size:.9rem;min-height:1.4em;margin:0 0 10px}
+
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-weight:600;z-index:120;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
-@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+@media (min-width:900px){.toast{top:auto;bottom:24px}}
 </style>
 </head>
 <body class="masked">
 <script>try{if(localStorage.getItem("cracker-ledger-pin"))document.body.classList.add("locked")}catch(e){}</script>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sell" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></symbol>
+  <symbol id="i-stock" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-report" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></symbol>
+  <symbol id="i-bills" viewBox="0 0 24 24"><path d="M5 2h14v20l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+</svg>
+
 <header class="top">
   <div class="top-in">
-    <h1 class="brand">Cracker stall ledger<small id="syncStatus">Loading…</small></h1>
-    <div class="today-strip" aria-label="Today so far">
-      <div>Sold today<b class="secret"><span class="real" id="hdrSales">₹0</span></b></div>
-      <div>Profit today<b class="secret"><span class="real" id="hdrProfit">₹0</span></b></div>
-      <button class="eye" id="eyeBtn" aria-pressed="false">Show numbers</button>
-      <button class="eye" id="colourBtn">Colour</button>
-      <button class="eye" id="lockBtn" hidden>Lock</button>
-    </div>
+    <div class="ttl"><h1><button class="ttl-btn" id="titleBtn" aria-label="Edit stall name"><span id="appTitle">Cracker stall ledger</span><svg class="i" aria-hidden="true"><use href="#i-pen"/></svg></button></h1></div>
+    <button class="icon-btn" id="eyeBtn" aria-pressed="false" aria-label="Show numbers"><svg class="i"><use href="#i-eye"/></svg></button>
+    <button class="icon-btn" id="lockBtn" aria-label="Lock app" hidden><svg class="i"><use href="#i-lock"/></svg></button>
+  </div>
+  <div class="today" aria-label="Today so far">
+    <div><span>Sold today</span><b class="secret"><span class="real" id="hdrSales">₹0</span></b></div>
+    <div><span>Profit today</span><b class="secret"><span class="real" id="hdrProfit">₹0</span></b></div>
+    <div><span>Bills today</span><b id="hdrBills">0</b></div>
   </div>
 </header>
 
 <nav class="tabs" role="tablist">
-  <button role="tab" data-tab="sell" aria-selected="true">Sell</button>
-  <button role="tab" data-tab="stock" aria-selected="false">Stock</button>
-  <button role="tab" data-tab="report" aria-selected="false">Day report</button>
-  <button role="tab" data-tab="bills" aria-selected="false">Bills</button>
+  <button role="tab" data-tab="sell" aria-selected="true"><svg class="i"><use href="#i-sell"/></svg>Sell</button>
+  <button role="tab" data-tab="stock" aria-selected="false"><svg class="i"><use href="#i-stock"/></svg>Stock</button>
+  <button role="tab" data-tab="report" aria-selected="false"><svg class="i"><use href="#i-report"/></svg>Report</button>
+  <button role="tab" data-tab="bills" aria-selected="false"><svg class="i"><use href="#i-bills"/></svg>Bills</button>
+  <button role="tab" data-tab="more" aria-selected="false"><svg class="i"><use href="#i-more"/></svg>More</button>
 </nav>
 
 <main>
@@ -202,151 +290,177 @@ dialog::backdrop{background:rgba(20,10,5,.45)}
   <section id="tab-sell">
     <div class="sell-layout">
       <div>
-        <div class="search-row">
-          <input type="search" id="sellSearch" placeholder="Search crackers…" aria-label="Search crackers">
-          <button class="mic" id="micBtn" aria-label="Add items by voice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg><span id="micLbl">Speak</span></button>
+        <div class="search-bar">
+          <input type="search" id="sellSearch" placeholder="Search crackers" aria-label="Search crackers" autocomplete="off">
+          <button class="mic" id="micBtn" aria-label="Add items by voice"><svg class="i"><use href="#i-mic"/></svg><span id="micLbl">Speak</span></button>
         </div>
         <div class="voice-out" id="voiceOut" hidden aria-live="polite"></div>
         <div class="tiles" id="tiles"></div>
       </div>
-      <div class="panel cart">
-        <div class="row spread"><h3 style="margin:0">Current bill</h3><button class="btn link" id="clearCart">Clear</button></div>
+      <aside class="cart" id="cart" aria-label="Current bill">
+        <div class="grab" aria-hidden="true"></div>
+        <div class="cart-head">
+          <h2>Current bill</h2>
+          <button class="txt-btn neg" id="clearCart">Clear</button>
+          <button class="icon-btn sheet-close" id="closeCart" aria-label="Close bill" style="border-color:var(--line)"><svg class="i"><use href="#i-x"/></svg></button>
+        </div>
         <div id="cartLines"></div>
         <div id="cartFoot"></div>
-      </div>
+      </aside>
     </div>
+    <button class="bill-bar" id="billBar" hidden><span><span class="bb-count" id="bbCount">0 items</span></span><span class="bb-total" id="bbTotal">₹0</span><span class="bb-cta">View bill</span></button>
+    <div class="scrim" id="scrim" hidden></div>
   </section>
 
   <!-- STOCK -->
   <section id="tab-stock" hidden>
-    <div class="panel">
-      <h2 id="formTitle">Add stock you bought</h2>
-      <p class="muted small">For a bulk deal, enter the total you paid and how many units you got. The app works out the cost per unit.</p>
-      <div class="grid-form">
-        <div style="grid-column:1/-1;max-width:420px"><label for="fName">Item name</label><input type="text" id="fName" placeholder="e.g. Flower pots (10 pcs)"></div>
-        <div><label for="fQty">Quantity bought</label><input type="number" id="fQty" min="0" inputmode="numeric" placeholder="50"></div>
-        <div><label for="fUnit">Counted as</label>
-          <select id="fUnit"><option>box</option><option>packet</option><option>piece</option><option>pack</option><option>dozen</option><option>bundle</option></select></div>
-        <div>
-          <label>Cost you paid</label>
-          <div class="seg" role="group" aria-label="Cost entry">
-            <button type="button" data-cost="total" aria-pressed="true">Total</button>
-            <button type="button" data-cost="unit" aria-pressed="false">Per unit</button>
-          </div>
-        </div>
-        <div><label for="fCost" id="fCostLbl">Total paid (₹)</label><input type="number" id="fCost" min="0" step="0.01" inputmode="decimal" placeholder="3000"></div>
-        <div><label for="fPrice">Your selling price per unit (₹)</label><input type="number" id="fPrice" min="0" step="0.01" inputmode="decimal" placeholder="120"></div>
-      </div>
-      <p class="small" id="fPreview" style="margin-top:12px;min-height:1.5em"></p>
-      <div class="row"><button class="btn" id="saveItem">Add to stock</button><button class="btn ghost" id="cancelEdit" hidden>Cancel</button></div>
-    </div>
-    <div class="panel">
-      <div class="row spread"><h3 style="margin:0">Your stock</h3><span class="small muted" id="stockSummary"></span></div>
-      <div class="tbl-wrap" id="stockTable"></div>
-    </div>
-    <div class="panel">
-      <h3>PIN lock</h3>
-      <p class="small muted" id="pinState">No PIN set. Anyone who opens the app on this phone can see your sales and profit.</p>
-      <div class="row">
-        <button class="btn" id="pinSet">Set a PIN</button>
-        <button class="btn ghost" id="pinChange" hidden>Change PIN</button>
-        <button class="btn ghost" id="pinRemove" hidden>Remove PIN</button>
-      </div>
-    </div>
-    <div class="panel">
-      <h3>Backup</h3>
-      <p class="small muted">Your data is saved only inside this phone's browser. Download a backup every night and keep it safe (WhatsApp it to yourself, or save to Google Drive). If the phone is lost or browser data is cleared, restore from the latest backup.</p>
-      <div class="row">
-        <button class="btn" id="backupBtn">Download backup</button>
-        <button class="btn ghost" id="restoreBtn">Restore from backup</button>
-        <input type="file" id="restoreFile" accept=".json,application/json" hidden>
-      </div>
-    </div>
-    <div class="panel">
-      <h3>Start over</h3>
-      <p class="small muted">Clearing can't be undone. Download your day reports first if you want to keep a record.</p>
-      <div class="row">
-        <button class="btn ghost" id="clearSales">Clear sales and expenses</button>
-        <button class="btn danger" id="clearAll">Clear everything</button>
-      </div>
-      <p class="small muted" style="margin:8px 0 0">“Clear sales and expenses” keeps your stock list and puts every item back to full quantity. “Clear everything” also deletes the stock list.</p>
-    </div>
+    <div class="sec-head"><h2>Stock</h2><button class="btn" id="addItemBtn"><svg class="i"><use href="#i-plus"/></svg>Add stock</button></div>
+    <p class="small muted" id="stockSummary"></p>
+    <div id="stockList"></div>
   </section>
 
   <!-- REPORT -->
   <section id="tab-report" hidden>
-    <div class="row spread" style="margin-bottom:14px">
-      <div style="max-width:200px"><label for="repDate">Report for</label><input type="date" id="repDate"></div>
-      <button class="btn ghost" id="exportCsv">Download CSV</button>
+    <div class="chips">
+      <button class="chip" data-day="0" aria-pressed="true">Today</button>
+      <button class="chip" data-day="1" aria-pressed="false">Yesterday</button>
+      <input type="date" id="repDate" aria-label="Pick a date">
     </div>
     <div id="repBody"></div>
-    <div class="panel">
-      <h3>Expenses for this day</h3>
-      <p class="small muted">Stall rent, transport, labour, tea for the helpers. These come out of the day's profit.</p>
-      <div class="grid-form">
-        <div><label for="exLabel">What for</label><input type="text" id="exLabel" placeholder="Stall rent"></div>
-        <div><label for="exAmt">Amount (₹)</label><input type="number" id="exAmt" min="0" step="0.01" inputmode="decimal"></div>
-        <div><button class="btn" id="addExp">Add expense</button></div>
+    <div class="block">
+      <h3>Expenses this day</h3>
+      <p class="small muted">Stall rent, transport, labour. These come out of the day's profit.</p>
+      <div class="two">
+        <div class="field"><label for="exLabel">What for</label><input type="text" id="exLabel" placeholder="Stall rent"></div>
+        <div class="field"><label for="exAmt">Amount (₹)</label><input type="number" id="exAmt" min="0" step="0.01" inputmode="decimal"></div>
       </div>
-      <div id="expList" style="margin-top:10px"></div>
+      <button class="btn soft wide" id="addExp">Add expense</button>
+      <div id="expList" style="margin-top:8px"></div>
     </div>
     <div id="seasonBody"></div>
+    <button class="btn soft wide" id="exportXlsx">Download this day as Excel</button>
   </section>
 
   <!-- BILLS -->
   <section id="tab-bills" hidden>
-    <div class="row spread" style="margin-bottom:14px">
-      <div style="max-width:200px"><label for="billDate">Bills on</label><input type="date" id="billDate"></div>
-    </div>
+    <div class="sec-head"><h2>Bills</h2><input type="date" id="billDate" aria-label="Bills on date" style="width:auto"></div>
     <div id="billList"></div>
+    <button class="btn soft wide" id="billsXlsx">Download these bills as Excel</button>
+  </section>
+
+  <!-- MORE -->
+  <section id="tab-more" hidden>
+    <div class="sec-head"><h2>More</h2></div>
+    <div class="block">
+      <h3>Colour</h3>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div class="block">
+      <h3>Excel export</h3>
+      <p class="small muted">Every bill, a daily summary, items sold, stock and expenses for the whole season, in one Excel file.</p>
+      <button class="btn" id="allXlsx">Download all sales as Excel</button>
+    </div>
+    <div class="block">
+      <h3>Google Sheet live copy</h3>
+      <p class="small muted">Every sale and expense is also added to your Google Sheet. If there's no internet, the app keeps them and sends them later.</p>
+      <div class="field"><label for="gsUrl">Web app link from Apps Script</label><input type="text" id="gsUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"></div>
+      <div class="row"><button class="btn" id="gsSave">Save link</button><button class="btn soft" id="gsTest">Send test</button><button class="btn soft" id="gsBackfill">Send past sales</button></div>
+      <p class="small muted" id="gsStatus" style="margin:10px 0 0"></p>
+    </div>
+    <div class="block">
+      <h3>PIN lock</h3>
+      <p class="small muted" id="pinState"></p>
+      <div class="row">
+        <button class="btn" id="pinSet">Set a PIN</button>
+        <button class="btn soft" id="pinChange" hidden>Change PIN</button>
+        <button class="btn soft" id="pinRemove" hidden>Remove PIN</button>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Backup</h3>
+      <p class="small muted">Your data is saved only on this phone. Download a backup every night and send it to yourself on WhatsApp or Google Drive.</p>
+      <div class="row">
+        <button class="btn" id="backupBtn">Download backup</button>
+        <button class="btn soft" id="restoreBtn">Restore from backup</button>
+        <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Start over</h3>
+      <p class="small muted">Clearing sales keeps your stock list and puts every item back to full. Clearing everything also deletes the stock list. Neither can be undone.</p>
+      <div class="row">
+        <button class="btn soft" id="clearSales">Clear sales and expenses</button>
+        <button class="btn danger" id="clearAll">Clear everything</button>
+      </div>
+    </div>
   </section>
 </main>
 
-<dialog id="restockDlg">
-  <h3 id="rsTitle">Restock</h3>
-  <div class="grid-form" style="grid-template-columns:1fr 1fr">
-    <div><label for="rsQty">Extra quantity</label><input type="number" id="rsQty" min="1" inputmode="numeric"></div>
-    <div><label for="rsCost">Total paid for these (₹)</label><input type="number" id="rsCost" min="0" step="0.01" inputmode="decimal"></div>
+<!-- dialogs -->
+<dialog id="itemDlg" class="sheet">
+  <h3 id="formTitle">Add stock you bought</h3>
+  <p class="small muted">For a bulk deal, enter the total you paid. The app works out the cost per unit.</p>
+  <div class="field"><label for="fName">Item name</label><input type="text" id="fName" placeholder="e.g. Chakkar" autocomplete="off"></div>
+  <div class="two">
+    <div class="field"><label for="fQty">Quantity bought</label><input type="number" id="fQty" min="0" inputmode="numeric" placeholder="100"></div>
+    <div class="field"><label for="fUnit">Counted as</label><select id="fUnit"><option>box</option><option>packet</option><option>piece</option><option>pack</option><option>dozen</option><option>bundle</option></select></div>
   </div>
-  <p class="small muted" id="rsNote" style="margin-top:10px"></p>
-  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="rsCancel">Cancel</button><button class="btn" id="rsSave">Add to stock</button></div>
+  <div class="field"><label>Cost you paid</label>
+    <div class="seg" role="group" aria-label="Cost entry"><button type="button" data-cost="total" aria-pressed="true">Total for all</button><button type="button" data-cost="unit" aria-pressed="false">Per unit</button></div>
+  </div>
+  <div class="two">
+    <div class="field"><label for="fCost" id="fCostLbl">Total paid (₹)</label><input type="number" id="fCost" min="0" step="0.01" inputmode="decimal" placeholder="5000"></div>
+    <div class="field"><label for="fPrice">Selling price per unit (₹)</label><input type="number" id="fPrice" min="0" step="0.01" inputmode="decimal" placeholder="80"></div>
+  </div>
+  <div class="preview" id="fPreview"></div>
+  <div class="dlg-acts"><button class="btn soft" id="cancelEdit">Cancel</button><button class="btn" id="saveItem">Add to stock</button></div>
 </dialog>
 
-<dialog id="colourDlg">
-  <h3>Choose a colour</h3>
-  <p class="small muted" style="margin:0">Changes the top bar and buttons on this device.</p>
-  <div class="swatches" id="swatches"></div>
-  <div class="row" style="justify-content:flex-end"><button class="btn" id="colourDone">Done</button></div>
+<dialog id="titleDlg" class="sheet">
+  <h3>Stall name</h3>
+  <div class="field"><label for="tName">Shown at the top of the app</label><input type="text" id="tName" maxlength="40" autocomplete="off" placeholder="Cracker stall ledger"></div>
+  <p class="small muted">Leave it empty to go back to “Cracker stall ledger”.</p>
+  <div class="dlg-acts"><button class="btn soft" id="tCancel">Cancel</button><button class="btn" id="tSave">Save name</button></div>
+</dialog>
+
+<dialog id="restockDlg" class="sheet">
+  <h3 id="rsTitle">Restock</h3>
+  <div class="two">
+    <div class="field"><label for="rsQty">Extra quantity</label><input type="number" id="rsQty" min="1" inputmode="numeric"></div>
+    <div class="field"><label for="rsCost">Total paid for these (₹)</label><input type="number" id="rsCost" min="0" step="0.01" inputmode="decimal"></div>
+  </div>
+  <p class="small muted" id="rsNote"></p>
+  <div class="dlg-acts"><button class="btn soft" id="rsCancel">Cancel</button><button class="btn" id="rsSave">Add to stock</button></div>
+</dialog>
+
+<dialog id="pinDlg" class="sheet">
+  <h3 id="pdTitle">Set a PIN</h3>
+  <div class="field" id="pdCurWrap"><label for="pdCur">Current PIN</label><input type="password" id="pdCur" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
+  <div id="pdNewWrap">
+    <div class="field"><label for="pdNew">New PIN (4 to 8 digits)</label><input type="password" id="pdNew" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
+    <div class="field"><label for="pdNew2">Type the new PIN again</label><input type="password" id="pdNew2" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
+  </div>
+  <p class="lock-err" id="pdErr" role="alert"></p>
+  <div class="dlg-acts"><button class="btn soft" id="pdCancel">Cancel</button><button class="btn" id="pdOk">Save PIN</button></div>
 </dialog>
 
 <dialog id="confirmDlg">
   <h3 id="cfTitle">Are you sure?</h3>
   <p class="small" id="cfText"></p>
-  <div id="cfWordWrap" hidden style="margin-bottom:12px"><label for="cfWord">Type CLEAR to confirm</label><input type="text" id="cfWord" autocomplete="off" autocapitalize="characters"></div>
-  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="cfCancel">Cancel</button><button class="btn" id="cfOk">Delete</button></div>
+  <div class="field" id="cfWordWrap" hidden><label for="cfWord">Type CLEAR to confirm</label><input type="text" id="cfWord" autocomplete="off" autocapitalize="characters"></div>
+  <div class="dlg-acts"><button class="btn soft" id="cfCancel">Cancel</button><button class="btn" id="cfOk" style="background:var(--loss)">Delete</button></div>
 </dialog>
 
 <div class="lock" id="lockScreen" aria-hidden="true">
   <div class="lock-card">
-    <h2>Cracker stall ledger</h2>
-    <p class="small muted" style="margin:0">Enter your PIN to open</p>
+    <h2 id="lockTitle">Cracker stall ledger</h2>
+    <p class="small muted" style="margin:4px 0 0">Enter your PIN to open</p>
     <input type="password" class="pin-in" id="lockPin" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" aria-label="PIN">
     <p class="lock-err" id="lockErr" role="alert"></p>
-    <button class="btn big" id="unlockBtn">Unlock</button>
-    <button class="btn link" id="forgotPin" style="margin-top:10px">Forgot PIN?</button>
+    <button class="btn wide" id="unlockBtn">Unlock</button>
+    <button class="txt-btn" id="forgotPin" style="margin-top:8px">Forgot PIN?</button>
   </div>
 </div>
-
-<dialog id="pinDlg">
-  <h3 id="pdTitle">Set a PIN</h3>
-  <div id="pdCurWrap" style="margin-bottom:10px"><label for="pdCur">Current PIN</label><input type="password" id="pdCur" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
-  <div id="pdNewWrap">
-    <div style="margin-bottom:10px"><label for="pdNew">New PIN (4 to 8 digits)</label><input type="password" id="pdNew" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
-    <div style="margin-bottom:10px"><label for="pdNew2">Type the new PIN again</label><input type="password" id="pdNew2" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></div>
-  </div>
-  <p class="lock-err" id="pdErr" role="alert"></p>
-  <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="pdCancel">Cancel</button><button class="btn" id="pdOk">Save PIN</button></div>
-</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -356,12 +470,10 @@ dialog::backdrop{background:rgba(20,10,5,.45)}
 /* ---------- state ---------- */
 const S = { stock: [], sales: [], expenses: [] };
 const LS_KEY = "cracker-ledger-v1";
-let db = null, downloads = null;
-let cart = []; // {itemId, qty, price}
+let cart = [];            // {itemId, qty, price}
 let payMode = "cash";
 let costMode = "total";
-let editingId = null;
-let restockId = null;
+let editingId = null, restockId = null;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -372,62 +484,33 @@ const pct = (a, b) => b ? (a / b * 100) : 0;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const localDate = (d = new Date()) => { const z = n => String(n).padStart(2, "0"); return d.getFullYear() + "-" + z(d.getMonth()+1) + "-" + z(d.getDate()); };
 const today = () => localDate();
+const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return localDate(d); };
 const prettyDate = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-IN", {weekday:"short", day:"numeric", month:"short"}); };
-
+const buzz = () => { try { navigator.vibrate && navigator.vibrate(12); } catch(e) {} };
 function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200); }
 
-/* ---------- storage: shared db when available, otherwise this device ---------- */
+/* ---------- storage (this phone) ---------- */
 function loadLocal(){
   try { const raw = localStorage.getItem(LS_KEY); if (raw) { const d = JSON.parse(raw); S.stock = d.stock || []; S.sales = d.sales || []; S.expenses = d.expenses || []; } } catch(e) {}
 }
-function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
-
+function saveLocal(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(S)); return true; }
+  catch(e) { toast("Phone storage is full. Download a backup and clear old data."); return false; }
+}
 async function put(col, obj){
-  if (db) {
-    const { id, ...rest } = obj;
-    try { await db.collection(col).doc(id).set(rest); }
-    catch(e){ toast(e && e.code === "quota_exceeded" ? "Storage is full" : "Couldn't save. Check your connection and try again."); throw e; }
-  } else {
-    const arr = S[col]; const i = arr.findIndex(x => x.id === obj.id);
-    if (i >= 0) arr[i] = obj; else arr.push(obj);
-    saveLocal(); renderData();
-  }
+  const arr = S[col]; const i = arr.findIndex(x => x.id === obj.id);
+  if (i >= 0) arr[i] = obj; else arr.push(obj);
+  saveLocal(); renderData();
 }
-async function remove(col, id){
-  if (db) { try { await db.collection(col).doc(id).delete(); } catch(e){ toast("Couldn't delete. Try again."); } }
-  else { S[col] = S[col].filter(x => x.id !== id); saveLocal(); renderData(); }
-}
-
-function setStatus(text){ $("syncStatus").textContent = text; }
-
-async function connect(){
-  loadLocal();
-  setStatus("Saved on this phone · works offline");
-  renderAll();
-  const c = window.claude;
-  if (!c || typeof c.use !== "function") return;
-  try { downloads = await c.use("downloads"); } catch(e) { downloads = null; }
-  $("exportCsv").hidden = !downloads;
-  let handle = null;
-  try { handle = await c.use("db"); } catch(e) { handle = null; }
-  if (!handle) return;
-  db = handle;
-  setStatus("Synced to your account · open on any device");
-  ["stock","sales","expenses"].forEach(col => {
-    db.collection(col).onSnapshot(snap => {
-      S[col] = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
-      renderData();
-    }, err => { setStatus("Sync paused · reload to reconnect"); });
-  });
-}
+async function remove(col, id){ S[col] = S[col].filter(x => x.id !== id); saveLocal(); renderData(); }
 
 /* ---------- derived numbers ---------- */
-function soldMap(){
+function soldMap(upToDate){
   const m = {};
-  S.sales.forEach(s => (s.lines || []).forEach(l => { m[l.itemId] = (m[l.itemId] || 0) + num(l.qty); }));
+  S.sales.forEach(s => { if (upToDate && s.date > upToDate) return; (s.lines || []).forEach(l => { m[l.itemId] = (m[l.itemId] || 0) + num(l.qty); }); });
   return m;
 }
-function itemById(id){ return S.stock.find(x => x.id === id); }
+const itemById = id => S.stock.find(x => x.id === id);
 function saleTotals(s){
   let rev = 0, cost = 0;
   (s.lines || []).forEach(l => { rev += num(l.qty) * num(l.price); cost += num(l.qty) * num(l.cost); });
@@ -452,11 +535,13 @@ function dayFigures(date){
 }
 
 /* ---------- tabs ---------- */
-document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => {
-  document.querySelectorAll("nav.tabs button").forEach(x => x.setAttribute("aria-selected", x === b ? "true" : "false"));
-  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + b.dataset.tab);
+function showTab(name){
+  document.querySelectorAll("nav.tabs button").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === name ? "true" : "false"));
+  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + name);
+  closeCart(); updateBillBar();
   window.scrollTo(0, 0);
-}));
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
 /* ---------- SELL ---------- */
 function renderTiles(){
@@ -464,46 +549,69 @@ function renderTiles(){
   const sold = soldMap();
   const list = S.stock.filter(i => !q || i.name.toLowerCase().includes(q)).sort((a,b) => a.name.localeCompare(b.name));
   const el = $("tiles");
-  if (!S.stock.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">No stock yet. Add what you bought in the <b>Stock</b> tab, then come back here to sell.</div>'; return; }
+  if (!S.stock.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1"><b>No stock yet</b>Add what you bought in the Stock tab, then tap items here to sell.<br><br><button class="btn" data-goto="stock">Add stock</button></div>'; return; }
   if (!list.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">Nothing matches “' + esc(q) + '”.</div>'; return; }
   el.innerHTML = list.map(i => {
     const inCart = cart.filter(c => c.itemId === i.id).reduce((a,c) => a + c.qty, 0);
-    const left = num(i.qty) - (sold[i.id] || 0) - inCart;
-    const low = left <= Math.max(2, num(i.qty) * 0.1);
-    return '<button class="tile' + (left <= 0 ? " out" : "") + '" data-id="' + esc(i.id) + '">' +
-      '<span class="tile-top"><span class="nm">' + esc(i.name) + '</span><span class="tot">Total ' + i.qty + '</span></span>' +
+    const total = num(i.qty), left = total - (sold[i.id] || 0) - inCart;
+    const low = left <= Math.max(2, total * 0.1);
+    const frac = total ? Math.max(0, Math.min(1, left / total)) : 0;
+    return '<button class="tile' + (left <= 0 ? " out" : "") + (inCart ? " in" : "") + '" data-id="' + esc(i.id) + '" aria-label="Add ' + esc(i.name) + '">' +
+      (inCart ? '<span class="badge">' + inCart + ' in bill</span>' : '') +
+      '<span class="tile-top"><span class="tot">Total ' + total + '</span><span class="nm">' + esc(i.name) + '</span></span>' +
       '<span class="lf' + (low ? " low" : "") + '">' + (left <= 0 ? "Out of stock" : left + " " + esc(i.unit) + " left") + '</span>' +
+      '<span class="meter"><i class="' + (low ? "low" : "") + '" style="width:' + (frac * 100).toFixed(1) + '%"></i></span>' +
       '<span class="pr">' + inr2(num(i.price)) + '</span></button>';
   }).join("");
 }
 $("tiles").addEventListener("click", e => {
+  const g = e.target.closest("[data-goto]"); if (g) { showTab(g.dataset.goto); return; }
   const t = e.target.closest(".tile"); if (!t) return;
   const item = itemById(t.dataset.id); if (!item) return;
   const line = cart.find(c => c.itemId === item.id);
   if (line) line.qty += 1; else cart.push({ itemId: item.id, qty: 1, price: num(item.price) });
-  renderCart(); renderTiles();
+  buzz(); renderCart(); renderTiles();
 });
 $("sellSearch").addEventListener("input", renderTiles);
 
+function cartTotal(){ return cart.reduce((a, c) => a + c.qty * c.price, 0); }
+function updateBillBar(){
+  const onSell = !$("tab-sell").hidden;
+  const show = onSell && cart.length > 0;
+  $("billBar").hidden = !show;
+  document.body.classList.toggle("has-bill", show);
+  if (!show) return;
+  const n = cart.reduce((a, c) => a + c.qty, 0);
+  $("bbCount").textContent = n + (n === 1 ? " item" : " items");
+  $("bbTotal").textContent = inr2(cartTotal());
+}
+function openCart(){ if (!cart.length) return; $("cart").classList.add("open"); $("scrim").hidden = false; }
+function closeCart(){ $("cart").classList.remove("open"); $("scrim").hidden = true; }
+$("billBar").addEventListener("click", openCart);
+$("scrim").addEventListener("click", closeCart);
+$("closeCart").addEventListener("click", closeCart);
+
 function renderCart(){
   const el = $("cartLines");
-  if (!cart.length) { el.innerHTML = '<div class="empty">Tap a cracker to add it to the bill.</div>'; $("cartFoot").innerHTML = ""; return; }
+  if (!cart.length) {
+    el.innerHTML = '<div class="empty">Tap a cracker to start a bill.</div>'; $("cartFoot").innerHTML = "";
+    closeCart(); updateBillBar(); return;
+  }
   el.innerHTML = cart.map((c, idx) => {
-    const it = itemById(c.itemId) || { name: "Removed item", unit: "", cost: 0 };
+    const it = itemById(c.itemId) || { name: "Removed item", unit: "" };
     return '<div class="cart-line" data-idx="' + idx + '">' +
-      '<div><div style="font-weight:600">' + esc(it.name) + '</div><div class="warn" data-warn></div></div>' +
-      '<button class="btn link" data-act="rm" aria-label="Remove ' + esc(it.name) + '">Remove</button>' +
-      '<div class="qty"><button data-act="dec" aria-label="One less">−</button><input type="number" min="1" inputmode="numeric" value="' + c.qty + '" data-act="qty" aria-label="Quantity"><button data-act="inc" aria-label="One more">+</button></div>' +
-      '<div class="row" style="justify-content:flex-end;gap:6px"><span class="small muted">₹ each</span><input class="price-in" type="number" min="0" step="0.01" inputmode="decimal" value="' + c.price + '" data-act="price" aria-label="Price each"></div>' +
-      '</div>';
+      '<div class="cl-top"><span class="cl-name">' + esc(it.name) + '</span><span class="cl-amt" data-amt></span></div>' +
+      '<div class="cl-ctrl"><div class="qty"><button data-act="dec" aria-label="One less">−</button><input type="number" min="1" inputmode="numeric" value="' + c.qty + '" data-act="qty" aria-label="Quantity"><button data-act="inc" aria-label="One more">+</button></div>' +
+      '<div class="price-wrap"><span class="small muted">₹ each</span><input class="price-in" type="number" min="0" step="0.01" inputmode="decimal" value="' + c.price + '" data-act="price" aria-label="Price each"></div></div>' +
+      '<div class="warn" data-warn></div></div>';
   }).join("");
   $("cartFoot").innerHTML =
     '<div class="bill-total"><span>Total</span><span class="num" id="billTotal"></span></div>' +
-    '<p class="small" id="billMargin" style="margin:4px 0 12px"></p>' +
-    '<div class="row" style="margin-bottom:12px"><span class="small muted">Paid by</span><div class="seg" role="group" aria-label="Payment mode">' +
+    '<p class="small" id="billMargin" style="margin:6px 0 14px"></p>' +
+    '<label>Paid by</label><div class="seg" role="group" aria-label="Payment mode" style="margin-bottom:14px">' +
       '<button type="button" data-pay="cash" aria-pressed="' + (payMode === "cash") + '">Cash</button>' +
-      '<button type="button" data-pay="upi" aria-pressed="' + (payMode === "upi") + '">UPI / card</button></div></div>' +
-    '<button class="btn big" id="completeSale">Complete sale</button>';
+      '<button type="button" data-pay="upi" aria-pressed="' + (payMode === "upi") + '">UPI / card</button></div>' +
+    '<button class="btn wide" id="completeSale" style="min-height:56px;font-size:1.1rem">Complete sale</button>';
   updateCartTotals();
 }
 function updateCartTotals(){
@@ -513,22 +621,23 @@ function updateCartTotals(){
   document.querySelectorAll(".cart-line").forEach(row => {
     const c = cart[+row.dataset.idx]; const it = itemById(c.itemId);
     total += c.qty * c.price; cost += c.qty * (it ? num(it.cost) : 0);
-    const w = row.querySelector("[data-warn]"); const msgs = [];
+    row.querySelector("[data-amt]").textContent = inr2(c.qty * c.price);
+    const msgs = [];
     if (it && c.price < num(it.cost)) msgs.push("Below your cost of " + inr2(num(it.cost)));
     if (it) { const left = num(it.qty) - (sold[it.id] || 0); if (c.qty > left) msgs.push("Only " + Math.max(left,0) + " left in stock"); }
-    w.textContent = msgs.join(" · ");
+    row.querySelector("[data-warn]").textContent = msgs.join(". ");
   });
   $("billTotal").textContent = inr2(total);
   const m = total - cost;
   $("billMargin").innerHTML = 'Margin on this bill: <span class="secret"><span class="real"><b class="' + (m >= 0 ? "pos" : "neg") + '">' + inr2(m) + '</b> <span class="muted">(' + pct(m, total).toFixed(0) + '%)</span></span></span>';
+  updateBillBar();
 }
 $("cartLines").addEventListener("click", e => {
   const b = e.target.closest("button[data-act]"); if (!b) return;
   const idx = +b.closest(".cart-line").dataset.idx; const c = cart[idx];
   if (b.dataset.act === "inc") c.qty += 1;
-  if (b.dataset.act === "dec") c.qty = Math.max(1, c.qty - 1);
-  if (b.dataset.act === "rm") cart.splice(idx, 1);
-  renderCart(); renderTiles();
+  if (b.dataset.act === "dec") { if (c.qty > 1) c.qty -= 1; else cart.splice(idx, 1); }
+  buzz(); renderCart(); renderTiles();
 });
 $("cartLines").addEventListener("input", e => {
   const inp = e.target; const row = inp.closest(".cart-line"); if (!row) return;
@@ -541,16 +650,15 @@ $("cartFoot").addEventListener("click", async e => {
   const p = e.target.closest("[data-pay]");
   if (p) { payMode = p.dataset.pay; document.querySelectorAll("[data-pay]").forEach(x => x.setAttribute("aria-pressed", x.dataset.pay === payMode)); return; }
   if (e.target.id === "completeSale") {
-    const btn = e.target; btn.disabled = true;
     const now = new Date();
     const lines = cart.map(c => { const it = itemById(c.itemId) || {}; return { itemId: c.itemId, name: it.name || "Item", unit: it.unit || "", qty: c.qty, price: c.price, cost: num(it.cost) }; });
     const sale = { id: uid(), date: localDate(now), ts: now.getTime(), pay: payMode, lines };
-    try {
-      await put("sales", sale);
-      const t = saleTotals(sale);
-      cart = []; renderCart(); renderTiles();
-      toast("Sale saved · " + inr2(t.rev));
-    } catch(err) { btn.disabled = false; }
+    await put("sales", sale);
+    gsEnqueue(gsSalePayload(sale));
+    const t = saleTotals(sale);
+    cart = []; payMode = "cash"; $("voiceOut").hidden = true;
+    renderCart(); renderTiles(); buzz();
+    toast("Sale saved: " + inr2(t.rev));
   }
 });
 $("clearCart").addEventListener("click", () => { cart = []; renderCart(); renderTiles(); });
@@ -564,7 +672,6 @@ const NUMW = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, ei
 const FILLER = new Set(("box boxes packet packets pack packs piece pieces pcs pc bundle bundles dozen dozens of x and aur add plus please " +
   "give me the a an also with more cash upi online gpay phonepe paytm card payment by in pay paid wala wale").split(" "));
 const isNum = t => typeof t === "number";
-
 function voiceTokens(text){
   const raw = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
   const out = [];
@@ -592,14 +699,12 @@ function lev(a, b){
   return prev[n];
 }
 const sim = (a, b) => 1 - lev(a, b) / Math.max(a.length, b.length, 1);
-// sound-alike match: compare consonant skeletons so "chakra" matches "chakkar", "anaar" matches "anar"
 const skel = w => w.replace(/(.)\1+/g, "$1").replace(/(?!^)[aeiouyh]/g, "");
 const simV = (a, b) => { const r = sim(a, b), sa = skel(a), sb = skel(b); return (sa.length >= 3 && sb.length >= 3) ? Math.max(r, sim(sa, sb) * 0.95) : r; };
 function itemKey(name){
   const w = name.toLowerCase().replace(/\(.*?\)/g, " ").replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
   return w.length ? w : name.toLowerCase().replace(/[^a-z]/g, " ").split(/\s+/).filter(Boolean);
 }
-
 function parseVoice(text){
   const tok = voiceTokens(text);
   const keys = S.stock.map(it => ({ it, key: itemKey(it.name) })).filter(k => k.key.length);
@@ -647,13 +752,12 @@ function parseVoice(text){
   const clear = /\b(clear|cancel)\b/.test(t) && !lines.length;
   return { lines, pay, clear };
 }
-
 function applyVoice(results){
   const out = $("voiceOut"); out.hidden = false;
   let best = null, heard = results[0] || "";
   for (const r of results) { const p = parseVoice(r); if (p.lines.length || p.clear || p.pay) { best = p; heard = r; break; } }
   if (!best) {
-    out.innerHTML = '<div class="heard">Heard: “' + esc(heard) + '”</div><div class="warn" style="margin-top:4px">Didn\u2019t match any item in your stock. Try saying the item name as it is written in the Stock tab.</div>';
+    out.innerHTML = '<div class="heard">Heard: “' + esc(heard) + '”</div><div class="warn">No item in your stock matches. Say the name as it is written in the Stock tab.</div>';
     return;
   }
   if (best.clear) { cart = []; renderCart(); renderTiles(); out.innerHTML = '<div class="heard">Heard: “' + esc(heard) + '”</div><div>Bill cleared.</div>'; return; }
@@ -664,18 +768,17 @@ function applyVoice(results){
     added.push(esc(l.it.name) + ' × ' + l.qty);
   });
   if (best.pay) payMode = best.pay;
-  renderCart(); renderTiles();
+  renderCart(); renderTiles(); buzz();
   out.innerHTML = '<div class="heard">Heard: “' + esc(heard) + '”</div>' +
     (added.length ? '<div style="margin-top:4px"><b>Added:</b> ' + added.join(", ") + '</div>' : '') +
     (best.pay ? '<div>Payment set to <b>' + (best.pay === "upi" ? "UPI / card" : "Cash") + '</b></div>' : '') +
-    '<div class="small muted" style="margin-top:4px">Check the bill, then tap Complete sale.</div>';
+    '<div class="small muted" style="margin-top:4px">Open the bill to check it, then tap Complete sale.</div>';
 }
-
 let rec = null, listening = false;
 function stopListening(){ listening = false; $("micBtn").classList.remove("on"); $("micLbl").textContent = "Speak"; }
 $("micBtn").addEventListener("click", () => {
   const out = $("voiceOut");
-  if (!SR) { out.hidden = false; out.innerHTML = '<div class="warn">Voice input isn\u2019t supported in this browser. Open the app in Google Chrome.</div>'; return; }
+  if (!SR) { out.hidden = false; out.innerHTML = '<div class="warn">Voice input needs Google Chrome. Open the app in Chrome to use it.</div>'; return; }
   if (listening && rec) { rec.stop(); return; }
   if (!S.stock.length) { out.hidden = false; out.innerHTML = '<div class="warn">Add items in the Stock tab first.</div>'; return; }
   rec = new SR();
@@ -692,9 +795,9 @@ $("micBtn").addEventListener("click", () => {
   };
   rec.onerror = e => {
     out.hidden = false;
-    const msg = e.error === "not-allowed" || e.error === "service-not-allowed" ? "Microphone permission is blocked. Allow the microphone for this site in Chrome settings."
-      : e.error === "network" ? "Voice needs an internet connection on this phone. You can still tap items to add them."
-      : e.error === "no-speech" ? "Didn\u2019t hear anything. Tap Speak and try again."
+    const msg = e.error === "not-allowed" || e.error === "service-not-allowed" ? "Microphone is blocked. Allow the microphone for this site in Chrome settings."
+      : e.error === "network" ? "Voice needs internet on this phone. You can still tap items to add them."
+      : e.error === "no-speech" ? "Didn’t hear anything. Tap Speak and try again."
       : "Voice input stopped (" + esc(e.error) + "). Try again.";
     out.innerHTML = '<div class="warn">' + msg + '</div>';
     finalAlts = null;
@@ -702,8 +805,8 @@ $("micBtn").addEventListener("click", () => {
   rec.onend = () => { stopListening(); if (finalAlts && finalAlts.length) applyVoice(finalAlts); };
   try {
     rec.start(); listening = true;
-    $("micBtn").classList.add("on"); $("micLbl").textContent = "Listening…";
-    out.hidden = false; out.innerHTML = '<div class="small muted">Say items and quantities, e.g. “chakkar 2, anar 3, UPI”.</div>';
+    $("micBtn").classList.add("on"); $("micLbl").textContent = "Listening";
+    out.hidden = false; out.innerHTML = '<div class="small muted">Say items and quantities, for example “chakkar 2, anar 3, UPI”.</div>';
   } catch(err) { stopListening(); }
 });
 
@@ -715,27 +818,27 @@ function setCostMode(m){
   $("fCostLbl").textContent = m === "total" ? "Total paid (₹)" : "Cost per unit (₹)";
   preview();
 }
-function unitCostFromForm(){
-  const q = num($("fQty").value), c = num($("fCost").value);
-  return costMode === "total" ? (q ? c / q : 0) : c;
-}
+function unitCostFromForm(){ const q = num($("fQty").value), c = num($("fCost").value); return costMode === "total" ? (q ? c / q : 0) : c; }
 function preview(){
   const q = num($("fQty").value), uc = unitCostFromForm(), p = num($("fPrice").value);
   const el = $("fPreview");
-  if (!q || !uc) { el.textContent = ""; return; }
-  let s = "Cost per unit: <b>" + inr2(uc) + "</b> · Total investment: <b>" + inr2(uc * q) + "</b>";
-  if (p) { const m = p - uc; s += ' · Margin per unit: <b class="' + (m >= 0 ? "pos" : "neg") + '">' + inr2(m) + " (" + pct(m, p).toFixed(0) + "%)</b>"; }
+  if (!q || !uc) { el.innerHTML = ""; return; }
+  let s = "Cost per unit <b>" + inr2(uc) + "</b>, total investment <b>" + inr2(uc * q) + "</b>";
+  if (p) { const m = p - uc; s += '<br>Margin per unit <b class="' + (m >= 0 ? "pos" : "neg") + '">' + inr2(m) + " (" + pct(m, p).toFixed(0) + "%)</b>"; }
   el.innerHTML = s;
 }
 ["fQty","fCost","fPrice"].forEach(id => $(id).addEventListener("input", preview));
-
-function resetForm(){
-  editingId = null;
-  ["fName","fQty","fCost","fPrice"].forEach(id => $(id).value = "");
-  $("fUnit").value = "box"; setCostMode("total");
-  $("formTitle").textContent = "Add stock you bought"; $("saveItem").textContent = "Add to stock"; $("cancelEdit").hidden = true;
+function openItemForm(item){
+  editingId = item ? item.id : null;
+  $("fName").value = item ? item.name : ""; $("fQty").value = item ? item.qty : "";
+  $("fUnit").value = item ? item.unit : "box"; $("fPrice").value = item ? item.price : "";
+  setCostMode(item ? "unit" : "total"); $("fCost").value = item ? item.cost : "";
+  $("formTitle").textContent = item ? "Edit " + item.name : "Add stock you bought";
+  $("saveItem").textContent = item ? "Save changes" : "Add to stock";
+  preview(); $("itemDlg").showModal(); $("fName").focus();
 }
-$("cancelEdit").addEventListener("click", resetForm);
+$("addItemBtn").addEventListener("click", () => openItemForm(null));
+$("cancelEdit").addEventListener("click", () => $("itemDlg").close());
 $("saveItem").addEventListener("click", async () => {
   const name = $("fName").value.trim(), qty = Math.round(num($("fQty").value)), cost = unitCostFromForm(), price = num($("fPrice").value);
   if (!name) { toast("Enter the item name"); $("fName").focus(); return; }
@@ -744,35 +847,31 @@ $("saveItem").addEventListener("click", async () => {
   if (price <= 0) { toast("Enter your selling price"); $("fPrice").focus(); return; }
   const base = editingId ? itemById(editingId) : null;
   const item = { id: editingId || uid(), name, unit: $("fUnit").value, qty, cost: Math.round(cost * 100) / 100, price, createdAt: base ? base.createdAt : Date.now() };
-  try { await put("stock", item); toast(editingId ? "Item updated" : "Added to stock"); resetForm(); } catch(e) {}
+  await put("stock", item);
+  $("itemDlg").close(); toast(editingId ? "Item updated" : "Added to stock"); editingId = null;
 });
-
 function renderStock(){
   const sold = soldMap();
-  const el = $("stockTable");
-  if (!S.stock.length) { el.innerHTML = '<div class="empty">Nothing in stock yet. Add your first item above.</div>'; $("stockSummary").textContent = ""; return; }
+  const el = $("stockList");
+  if (!S.stock.length) { el.innerHTML = '<div class="block empty"><b>Nothing in stock yet</b>Tap Add stock and enter what you bought.</div>'; $("stockSummary").textContent = ""; return; }
   let inv = 0, leftCost = 0;
-  const rows = S.stock.slice().sort((a,b) => a.name.localeCompare(b.name)).map(i => {
-    const s = sold[i.id] || 0, left = num(i.qty) - s, m = num(i.price) - num(i.cost);
-    inv += num(i.qty) * num(i.cost); leftCost += Math.max(left, 0) * num(i.cost);
-    return '<tr><td><b>' + esc(i.name) + '</b><br><span class="small muted">per ' + esc(i.unit) + '</span></td>' +
-      '<td>' + i.qty + '</td><td>' + s + '</td><td class="' + (left <= 0 ? "neg" : "") + '"><b>' + left + '</b></td>' +
-      '<td>' + inr2(num(i.cost)) + '</td><td>' + inr2(num(i.price)) + '</td>' +
-      '<td class="secret"><span class="real"><span class="pill ' + (m >= 0 ? "pos" : "neg") + '">' + inr2(m) + ' · ' + pct(m, num(i.price)).toFixed(0) + '%</span></span></td>' +
-      '<td><button class="btn link" data-rs="' + esc(i.id) + '">Restock</button><button class="btn link" data-ed="' + esc(i.id) + '">Edit</button><button class="btn link" data-dl="' + esc(i.id) + '">Delete</button></td></tr>';
+  el.innerHTML = S.stock.slice().sort((a,b) => a.name.localeCompare(b.name)).map(i => {
+    const total = num(i.qty), s = sold[i.id] || 0, left = total - s, m = num(i.price) - num(i.cost);
+    const low = left <= Math.max(2, total * 0.1), frac = total ? Math.max(0, Math.min(1, left / total)) : 0;
+    inv += total * num(i.cost); leftCost += Math.max(left, 0) * num(i.cost);
+    return '<div class="stock-card">' +
+      '<div class="sc-top"><span class="sc-name">' + esc(i.name) + '</span><span class="sc-left ' + (left <= 0 ? "neg" : "") + '">' + left + ' <small>of ' + total + ' ' + esc(i.unit) + ' left</small></span></div>' +
+      '<span class="meter"><i class="' + (low ? "low" : "") + '" style="width:' + (frac * 100).toFixed(1) + '%"></i></span>' +
+      '<div class="sc-figs"><div><span>Bought at</span><b>' + inr2(num(i.cost)) + '</b></div><div><span>Selling at</span><b>' + inr2(num(i.price)) + '</b></div>' +
+      '<div><span>Margin</span><b class="secret ' + (m >= 0 ? "pos" : "neg") + '"><span class="real">' + inr2(m) + '</span></b></div></div>' +
+      '<div class="sc-acts"><button class="txt-btn" data-rs="' + esc(i.id) + '">Restock</button><button class="txt-btn" data-ed="' + esc(i.id) + '">Edit</button><button class="txt-btn neg" data-dl="' + esc(i.id) + '">Delete</button></div>' +
+      '</div>';
   }).join("");
-  el.innerHTML = '<table><thead><tr><th>Item</th><th>Bought</th><th>Sold</th><th>Left</th><th>Cost / unit</th><th>Sell price</th><th>Margin / unit</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
-  $("stockSummary").textContent = "Invested " + inr(inv) + " · Unsold stock worth " + inr(leftCost) + " at cost";
+  $("stockSummary").textContent = "You invested " + inr(inv) + ". Unsold stock is worth " + inr(leftCost) + " at cost.";
 }
-$("stockTable").addEventListener("click", async e => {
+$("stockList").addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b) return;
-  if (b.dataset.ed) {
-    const i = itemById(b.dataset.ed); if (!i) return;
-    editingId = i.id; $("fName").value = i.name; $("fQty").value = i.qty; $("fUnit").value = i.unit;
-    setCostMode("unit"); $("fCost").value = i.cost; $("fPrice").value = i.price; preview();
-    $("formTitle").textContent = "Edit " + i.name; $("saveItem").textContent = "Save changes"; $("cancelEdit").hidden = false;
-    window.scrollTo({ top: 0, behavior: "smooth" }); $("fName").focus();
-  }
+  if (b.dataset.ed) { const i = itemById(b.dataset.ed); if (i) openItemForm(i); }
   if (b.dataset.dl) {
     const i = itemById(b.dataset.dl); if (!i) return;
     if (await askConfirm({ title: "Delete " + i.name + "?", text: "It will be removed from your stock list. Past bills keep their numbers." })) { await remove("stock", i.id); toast("Item deleted"); }
@@ -780,7 +879,7 @@ $("stockTable").addEventListener("click", async e => {
   if (b.dataset.rs) {
     const i = itemById(b.dataset.rs); if (!i) return;
     restockId = i.id; $("rsTitle").textContent = "Restock " + i.name; $("rsQty").value = ""; $("rsCost").value = "";
-    $("rsNote").textContent = "Current cost " + inr2(num(i.cost)) + " per " + i.unit + ". New stock is averaged in.";
+    $("rsNote").textContent = "Current cost is " + inr2(num(i.cost)) + " per " + i.unit + ". The new stock is averaged in.";
     $("restockDlg").showModal(); $("rsQty").focus();
   }
 });
@@ -788,66 +887,75 @@ $("rsCancel").addEventListener("click", () => $("restockDlg").close());
 $("rsSave").addEventListener("click", async () => {
   const i = itemById(restockId); const q = Math.round(num($("rsQty").value)), c = num($("rsCost").value);
   if (!i || q <= 0 || c <= 0) { toast("Enter quantity and amount paid"); return; }
-  const totalQty = num(i.qty) + q;
-  const avg = (num(i.qty) * num(i.cost) + c) / totalQty;
-  try { await put("stock", Object.assign({}, i, { qty: totalQty, cost: Math.round(avg * 100) / 100 })); $("restockDlg").close(); toast("Restocked " + q + " " + i.unit); } catch(e) {}
+  const totalQty = num(i.qty) + q, avg = (num(i.qty) * num(i.cost) + c) / totalQty;
+  await put("stock", Object.assign({}, i, { qty: totalQty, cost: Math.round(avg * 100) / 100 }));
+  $("restockDlg").close(); toast("Restocked " + q + " " + i.unit);
 });
 
 /* ---------- REPORT ---------- */
 $("repDate").value = today();
-$("repDate").addEventListener("change", () => { renderReport(); });
+function setRepDate(d){
+  $("repDate").value = d;
+  document.querySelectorAll(".chip[data-day]").forEach(c => c.setAttribute("aria-pressed", String(daysAgo(+c.dataset.day) === d)));
+  renderReport();
+}
+document.querySelectorAll(".chip[data-day]").forEach(c => c.addEventListener("click", () => setRepDate(daysAgo(+c.dataset.day))));
+$("repDate").addEventListener("change", () => setRepDate($("repDate").value || today()));
 function renderReport(){
   const d = $("repDate").value || today();
   const f = dayFigures(d);
   const isToday = d === today();
+  const when = isToday ? "Today" : prettyDate(d);
   const cls = f.net > 0 ? "pos" : f.net < 0 ? "neg" : "zero";
-  let verdict;
+  let html;
   if (!f.sales.length && !f.exps.length) {
-    verdict = '<div class="verdict zero"><p class="lead">No sales recorded ' + (isToday ? "yet today" : "on " + prettyDate(d)) + '.</p><p class="small muted" style="margin:6px 0 0">Bills you complete in the Sell tab show up here.</p></div>';
+    html = '<div class="verdict zero"><p class="lead"><b>No sales ' + (isToday ? "yet today" : "on " + prettyDate(d)) + '</b></p><p class="eq muted" style="margin-top:4px">Bills you complete in the Sell tab show up here.</p></div>';
   } else {
-    verdict = '<div class="verdict ' + cls + '"><p class="lead">' + (isToday ? "Today" : prettyDate(d)) + ' you ' + (f.net >= 0 ? "made a profit of" : "are at a loss of") + '</p>' +
+    html = '<div class="verdict ' + cls + '"><p class="lead">' + when + ' you ' + (f.net >= 0 ? "made a profit of" : "are at a loss of") + '</p>' +
       '<div class="amt">' + inr(Math.abs(f.net)) + '</div>' +
-      '<p class="small" style="margin:0">' + inr(f.rev) + ' sales − ' + inr(f.cost) + ' cost of crackers sold' + (f.exp ? ' − ' + inr(f.exp) + ' expenses' : '') + '</p></div>';
+      '<p class="eq">' + inr(f.rev) + ' sales minus ' + inr(f.cost) + ' cost of crackers sold' + (f.exp ? ' minus ' + inr(f.exp) + ' expenses' : '') + '</p></div>' +
+      '<div class="figs">' +
+      '<div><b>' + inr(f.rev) + '</b><span>Sales</span></div>' +
+      '<div><b class="' + (f.gross >= 0 ? "pos" : "neg") + '">' + pct(f.gross, f.rev).toFixed(1) + '%</b><span>Margin before expenses</span></div>' +
+      '<div><b>' + inr(f.cash) + '</b><span>Cash to count</span></div>' +
+      '<div><b>' + inr(f.upi) + '</b><span>UPI / card</span></div>' +
+      '<div><b>' + f.sales.length + '</b><span>Bills</span></div>' +
+      '<div><b>' + inr(f.cost) + '</b><span>Cost of what sold</span></div></div>';
   }
-  const figs = '<div class="figs">' +
-    '<div><b>' + inr(f.rev) + '</b><span>Sales</span></div>' +
-    '<div><b>' + inr(f.cost) + '</b><span>Purchase cost of what sold</span></div>' +
-    '<div><b class="' + (f.gross >= 0 ? "pos" : "neg") + '">' + inr(f.gross) + '</b><span>Margin before expenses · ' + pct(f.gross, f.rev).toFixed(1) + '%</span></div>' +
-    '<div><b>' + f.sales.length + '</b><span>Bills</span></div>' +
-    '<div><b>' + inr(f.cash) + '</b><span>Cash to count</span></div>' +
-    '<div><b>' + inr(f.upi) + '</b><span>UPI / card</span></div></div>';
   const items = Object.values(f.items).sort((a,b) => b.rev - a.rev);
-  let table = "";
   if (items.length) {
-    table = '<div class="panel"><h3>What sold</h3><div class="tbl-wrap"><table><thead><tr><th>Item</th><th>Qty</th><th>Bought at / unit</th><th>Sold at / unit (avg)</th><th>Sales</th><th>Margin</th><th>Margin %</th></tr></thead><tbody>' +
-      items.map(r => { const m = r.rev - r.cost; return '<tr><td>' + esc(r.name) + '</td><td>' + r.qty + ' ' + esc(r.unit) + '</td><td>' + inr2(r.cost / r.qty) + '</td><td>' + inr2(r.rev / r.qty) + '</td><td>' + inr(r.rev) + '</td><td class="' + (m >= 0 ? "pos" : "neg") + '">' + inr(m) + '</td><td>' + pct(m, r.rev).toFixed(1) + '%</td></tr>'; }).join("") +
-      '</tbody><tfoot><tr><td>Total</td><td></td><td></td><td></td><td>' + inr(f.rev) + '</td><td class="' + (f.gross >= 0 ? "pos" : "neg") + '">' + inr(f.gross) + '</td><td>' + pct(f.gross, f.rev).toFixed(1) + '%</td></tr></tfoot></table></div></div>';
+    html += '<div class="block"><h3>What sold</h3>' + items.map(r => { const m = r.rev - r.cost; return '<div class="lrow"><div class="lname">' + esc(r.name) +
+      '<small>' + r.qty + ' ' + esc(r.unit) + ', bought at ' + inr2(r.cost / r.qty) + ', sold at ' + inr2(r.rev / r.qty) + '</small></div>' +
+      '<div class="lnum">' + inr(r.rev) + '<small class="' + (m >= 0 ? "pos" : "neg") + '">' + (m >= 0 ? "+" : "") + inr(m) + ' (' + pct(m, r.rev).toFixed(0) + '%)</small></div></div>'; }).join("") +
+      '<div class="lrow total"><div class="lname">Total</div><div class="lnum">' + inr(f.rev) + '<small class="' + (f.gross >= 0 ? "pos" : "neg") + '">' + (f.gross >= 0 ? "+" : "") + inr(f.gross) + ' margin</small></div></div></div>';
   }
-  // Stock position at the end of the chosen day
-  let stockTbl = "";
   if (S.stock.length) {
-    const upTo = {};
-    S.sales.forEach(s => { if (s.date <= d) (s.lines || []).forEach(l => { upTo[l.itemId] = (upTo[l.itemId] || 0) + num(l.qty); }); });
-    let tB = 0, tD = 0, tU = 0, tL = 0;
+    const upTo = soldMap(d);
+    let tD = 0, tL = 0, tB = 0;
     const rows = S.stock.slice().sort((a,b) => a.name.localeCompare(b.name)).map(i => {
-      const day = f.items[i.id] ? f.items[i.id].qty : 0, up = upTo[i.id] || 0, left = num(i.qty) - up;
-      tB += num(i.qty); tD += day; tU += up; tL += left;
-      return '<tr><td>' + esc(i.name) + '<br><span class="small muted">in ' + esc(i.unit) + '</span></td><td>' + i.qty + '</td><td>' + (day ? '<b>' + day + '</b>' : '<span class="muted">0</span>') + '</td><td>' + up + '</td><td class="' + (left <= 0 ? "neg" : "") + '"><b>' + left + '</b></td></tr>';
+      const total = num(i.qty), day = f.items[i.id] ? f.items[i.id].qty : 0, up = upTo[i.id] || 0, left = total - up;
+      const low = left <= Math.max(2, total * 0.1), frac = total ? Math.max(0, Math.min(1, left / total)) : 0;
+      tB += total; tD += day; tL += left;
+      return '<div class="lrow"><div class="lname">' + esc(i.name) + '<small>Sold ' + (isToday ? "today" : "this day") + ' ' + day + ', sold so far ' + up + '</small>' +
+        '<span class="meter"><i class="' + (low ? "low" : "") + '" style="width:' + (frac * 100).toFixed(1) + '%"></i></span></div>' +
+        '<div class="lnum ' + (left <= 0 ? "neg" : "") + '">' + left + '<small class="muted">of ' + total + ' ' + esc(i.unit) + ' left</small></div></div>';
     }).join("");
-    stockTbl = '<div class="panel"><h3>Stock at end of ' + (isToday ? "today" : prettyDate(d)) + '</h3><div class="tbl-wrap"><table><thead><tr><th>Item</th><th>Bought</th><th>Sold ' + (isToday ? "today" : "this day") + '</th><th>Sold so far</th><th>Left</th></tr></thead><tbody>' + rows +
-      '</tbody><tfoot><tr><td>Total</td><td>' + tB + '</td><td>' + tD + '</td><td>' + tU + '</td><td>' + tL + '</td></tr></tfoot></table></div></div>';
+    html += '<div class="block"><h3>Stock at end of ' + (isToday ? "today" : prettyDate(d)) + '</h3>' + rows +
+      '<div class="lrow total"><div class="lname">Total<small>Sold ' + (isToday ? "today" : "this day") + ' ' + tD + '</small></div><div class="lnum">' + tL + '<small class="muted">of ' + tB + ' left</small></div></div></div>';
   }
-  $("repBody").innerHTML = verdict + figs + table + stockTbl;
-  $("expList").innerHTML = f.exps.length ? '<table><tbody>' + f.exps.map(e => '<tr><td>' + esc(e.label) + '</td><td>' + inr2(num(e.amount)) + '</td><td style="width:1%"><button class="btn link" data-exdel="' + esc(e.id) + '">Remove</button></td></tr>').join("") + '</tbody></table>' : '<p class="small muted" style="margin:0">No expenses added for this day.</p>';
+  $("repBody").innerHTML = html;
+  $("expList").innerHTML = f.exps.map(e => '<div class="lrow"><div class="lname">' + esc(e.label) + '</div><div class="lnum">' + inr2(num(e.amount)) + ' <button class="txt-btn neg" data-exdel="' + esc(e.id) + '">Remove</button></div></div>').join("");
   renderSeason();
 }
 $("addExp").addEventListener("click", async () => {
   const label = $("exLabel").value.trim() || "Expense", amount = num($("exAmt").value);
   if (amount <= 0) { toast("Enter the amount"); $("exAmt").focus(); return; }
-  try { await put("expenses", { id: uid(), date: $("repDate").value || today(), label, amount }); $("exLabel").value = ""; $("exAmt").value = ""; toast("Expense added"); } catch(e) {}
+  const ex = { id: uid(), date: $("repDate").value || today(), label, amount };
+  await put("expenses", ex);
+  gsEnqueue({ action: "addExpense", expense: ex });
+  $("exLabel").value = ""; $("exAmt").value = ""; toast("Expense added");
 });
-$("expList").addEventListener("click", e => { const b = e.target.closest("[data-exdel]"); if (b) remove("expenses", b.dataset.exdel); });
-
+$("expList").addEventListener("click", e => { const b = e.target.closest("[data-exdel]"); if (!b) return; const id = b.dataset.exdel; remove("expenses", id); gsEnqueue({ action: "deleteExpense", id }); });
 function renderSeason(){
   if (!S.stock.length) { $("seasonBody").innerHTML = ""; return; }
   const sold = soldMap();
@@ -855,26 +963,21 @@ function renderSeason(){
   S.stock.forEach(i => { const left = Math.max(num(i.qty) - (sold[i.id] || 0), 0); invested += num(i.qty) * num(i.cost); leftCost += left * num(i.cost); leftValue += left * num(i.price); });
   let rev = 0, cost = 0; S.sales.forEach(s => { const t = saleTotals(s); rev += t.rev; cost += t.cost; });
   const exp = S.expenses.reduce((a, e) => a + num(e.amount), 0);
-  const spent = invested + exp;
-  const cashPos = rev - spent;
-  const earned = rev - cost - exp;
-  const recovered = Math.min(pct(rev, spent), 100);
-  const ifAllSold = earned + (leftValue - leftCost);
-  $("seasonBody").innerHTML = '<div class="panel"><h2>Whole season so far</h2>' +
-    '<p class="muted small">Daily profit counts only what you sold. This view tells you whether the money you put in has come back yet.</p>' +
-    '<div class="figs">' +
-      '<div><b>' + inr(spent) + '</b><span>Money spent (stock ' + inr(invested) + (exp ? ' + expenses ' + inr(exp) : '') + ')</span></div>' +
-      '<div><b>' + inr(rev) + '</b><span>Money taken in</span></div>' +
-      '<div><b class="' + (earned >= 0 ? "pos" : "neg") + '">' + inr(earned) + '</b><span>Profit on what you sold</span></div>' +
-      '<div><b>' + inr(leftCost) + '</b><span>Unsold stock at cost</span></div>' +
-    '</div>' +
-    '<div class="row spread small"><span>Investment recovered</span><b>' + recovered.toFixed(0) + '%</b></div>' +
+  const spent = invested + exp, cashPos = rev - spent, earned = rev - cost - exp;
+  const recovered = Math.min(pct(rev, spent), 100), ifAllSold = earned + (leftValue - leftCost);
+  $("seasonBody").innerHTML = '<div class="block"><h3>Whole season so far</h3>' +
+    '<div class="row" style="justify-content:space-between"><span class="small">Money back from your investment</span><b class="num" style="font-size:1.2rem">' + recovered.toFixed(0) + '%</b></div>' +
     '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + recovered.toFixed(0) + '" aria-label="Investment recovered"><i class="' + (cashPos >= 0 ? "done" : "") + '" style="width:' + recovered + '%"></i></div>' +
-    '<p class="small" style="margin-top:8px">' + (cashPos >= 0
+    '<p class="small" style="margin:8px 0 12px">' + (cashPos >= 0
       ? 'You have got back everything you spent, plus <b class="pos">' + inr(cashPos) + '</b>. Anything you sell from here is extra profit.'
-      : 'You need <b>' + inr(-cashPos) + '</b> more in sales to get your money back. If the rest sells at your listed prices, the season ends at <b class="' + (ifAllSold >= 0 ? "pos" : "neg") + '">' + inr(ifAllSold) + '</b> ' + (ifAllSold >= 0 ? "profit" : "loss") + '.') + '</p></div>';
+      : 'You need <b>' + inr(-cashPos) + '</b> more in sales to get your money back. If the rest sells at your prices, the season ends at <b class="' + (ifAllSold >= 0 ? "pos" : "neg") + '">' + inr(ifAllSold) + '</b> ' + (ifAllSold >= 0 ? "profit" : "loss") + '.') + '</p>' +
+    '<div class="figs" style="margin-bottom:0">' +
+      '<div><b>' + inr(spent) + '</b><span>Money spent</span></div>' +
+      '<div><b>' + inr(rev) + '</b><span>Money taken in</span></div>' +
+      '<div><b class="' + (earned >= 0 ? "pos" : "neg") + '">' + inr(earned) + '</b><span>Profit on what sold</span></div>' +
+      '<div><b>' + inr(leftCost) + '</b><span>Unsold stock at cost</span></div>' +
+    '</div></div>';
 }
-
 function saveFile(name, text, type){
   const blob = new Blob([text], { type: type });
   const a = document.createElement("a");
@@ -882,124 +985,200 @@ function saveFile(name, text, type){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
-$("exportCsv").addEventListener("click", async () => {
-  const d = $("repDate").value || today(); const f = dayFigures(d);
-  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
-  const lines = [["Bill time","Payment","Item","Qty","Unit","Cost per unit","Sold at per unit","Sales","Margin"].map(q).join(",")];
-  f.sales.slice().sort((a,b) => a.ts - b.ts).forEach(s => (s.lines || []).forEach(l => {
-    lines.push([new Date(s.ts).toLocaleTimeString("en-IN"), s.pay, l.name, l.qty, l.unit || "", l.cost, l.price, (l.qty*l.price).toFixed(2), (l.qty*(l.price-l.cost)).toFixed(2)].map(q).join(","));
+/* ---------- Excel export (built in, works offline) ---------- */
+function saveBlob(name, blob){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b){ let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipFiles(files){
+  const enc = new TextEncoder(), parts = [], central = [];
+  const u16 = v => [v & 255, (v >>> 8) & 255], u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+  const now = new Date();
+  const dt = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF;
+  const dd = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xFFFF;
+  let offset = 0;
+  files.forEach(f => {
+    const name = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+    const head = new Uint8Array([0x50,0x4b,0x03,0x04].concat(u16(20), u16(0x0800), u16(0), u16(dt), u16(dd), u32(crc), u32(size), u32(size), u16(name.length), u16(0)));
+    parts.push(head, name, f.data);
+    central.push(new Uint8Array([0x50,0x4b,0x01,0x02].concat(u16(20), u16(20), u16(0x0800), u16(0), u16(dt), u16(dd), u32(crc), u32(size), u32(size), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset))), name);
+    offset += head.length + name.length + size;
+  });
+  const cdSize = central.reduce((a, b) => a + b.length, 0);
+  const end = new Uint8Array([0x50,0x4b,0x05,0x06].concat(u16(0), u16(0), u16(files.length), u16(files.length), u32(cdSize), u32(offset), u16(0)));
+  return new Blob(parts.concat(central, [end]), { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+const xesc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+function colName(i){ let s = ""; i++; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+const XSTY = { bold: 1, money: 2, pct: 3, boldmoney: 4 };
+function sheetXml(rows, widths){
+  let x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>';
+  if (widths) x += '<cols>' + widths.map((w, i) => '<col min="' + (i+1) + '" max="' + (i+1) + '" width="' + w + '" customWidth="1"/>').join("") + '</cols>';
+  x += '<sheetData>';
+  rows.forEach((row, r) => {
+    x += '<row r="' + (r+1) + '">';
+    row.forEach((cell, c) => {
+      if (cell === null || cell === undefined || cell === "") return;
+      let v = cell, st = 0;
+      if (typeof cell === "object") { v = cell.v; st = XSTY[cell.s] || 0; }
+      if (r === 0 && !st) st = 1;
+      const ref = colName(c) + (r+1), sa = st ? ' s="' + st + '"' : '';
+      if (typeof v === "number" && isFinite(v)) x += '<c r="' + ref + '"' + sa + '><v>' + v + '</v></c>';
+      else x += '<c r="' + ref + '" t="inlineStr"' + sa + '><is><t xml:space="preserve">' + xesc(v) + '</t></is></c>';
+    });
+    x += '</row>';
+  });
+  return x + '</sheetData></worksheet>';
+}
+function buildXlsx(sheets){
+  const enc = new TextEncoder(), files = [];
+  const add = (n, str) => files.push({ name: n, data: enc.encode(str) });
+  const H = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  add("[Content_Types].xml", H + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+    sheets.map((s, i) => '<Override PartName="/xl/worksheets/sheet' + (i+1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("") + '</Types>');
+  add("_rels/.rels", H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+  add("xl/workbook.xml", H + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+    sheets.map((s, i) => '<sheet name="' + xesc(s.name) + '" sheetId="' + (i+1) + '" r:id="rId' + (i+1) + '"/>').join("") + '</sheets></workbook>');
+  add("xl/_rels/workbook.xml.rels", H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    sheets.map((s, i) => '<Relationship Id="rId' + (i+1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i+1) + '.xml"/>').join("") +
+    '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+  add("xl/styles.xml", H + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="&quot;₹&quot;#,##0.00"/><numFmt numFmtId="165" formatCode="0.0%"/></numFmts>' +
+    '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>' +
+    '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>' +
+    '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="5"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+    '<xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/></cellXfs>' +
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>');
+  sheets.forEach((s, i) => add("xl/worksheets/sheet" + (i+1) + ".xml", sheetXml(s.rows, s.widths)));
+  return zipFiles(files);
+}
+const xm = v => ({ v: Math.round(v * 100) / 100, s: "money" });
+const xbm = v => ({ v: Math.round(v * 100) / 100, s: "boldmoney" });
+const xb = v => ({ v: v, s: "bold" });
+const xp = v => ({ v: Math.round(v * 10000) / 10000, s: "pct" });
+
+function exportExcel(dates, fileLabel){
+  dates = Array.from(new Set(dates)).sort();
+  const set = new Set(dates);
+  const sales = S.sales.filter(s => set.has(s.date)).sort((a, b) => a.ts - b.ts);
+  const exps = S.expenses.filter(e => set.has(e.date)).sort((a, b) => a.date < b.date ? -1 : 1);
+  if (!sales.length && !exps.length) { toast("No sales to export for this date"); return; }
+
+  // Summary per day
+  const sum = [["Date","Bills","Sales","Cost of crackers sold","Margin","Expenses","Profit","Cash","UPI / card"]];
+  const T = { b: 0, r: 0, c: 0, g: 0, e: 0, n: 0, cash: 0, upi: 0 };
+  dates.forEach(d => {
+    const f = dayFigures(d); if (!f.sales.length && !f.exps.length) return;
+    sum.push([prettyDate(d), f.sales.length, xm(f.rev), xm(f.cost), xm(f.gross), xm(f.exp), xm(f.net), xm(f.cash), xm(f.upi)]);
+    T.b += f.sales.length; T.r += f.rev; T.c += f.cost; T.g += f.gross; T.e += f.exp; T.n += f.net; T.cash += f.cash; T.upi += f.upi;
+  });
+  sum.push([xb("Total"), xb(T.b), xbm(T.r), xbm(T.c), xbm(T.g), xbm(T.e), xbm(T.n), xbm(T.cash), xbm(T.upi)]);
+
+  // Every bill line
+  const bills = [["Bill no","Date","Time","Paid by","Item","Qty","Unit","Price each","Amount","Cost per unit","Margin"]];
+  const perDay = {};
+  sales.forEach(s => {
+    perDay[s.date] = (perDay[s.date] || 0) + 1;
+    const time = new Date(s.ts).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+    (s.lines || []).forEach(l => bills.push([perDay[s.date], prettyDate(s.date), time, s.pay === "upi" ? "UPI / card" : "Cash", l.name, num(l.qty), l.unit || "",
+      xm(num(l.price)), xm(num(l.qty) * num(l.price)), xm(num(l.cost)), xm(num(l.qty) * (num(l.price) - num(l.cost)))]));
+  });
+
+  // Items sold
+  const agg = {};
+  sales.forEach(s => (s.lines || []).forEach(l => {
+    const a = agg[l.itemId] || (agg[l.itemId] = { name: l.name, unit: l.unit || "", qty: 0, rev: 0, cost: 0 });
+    a.qty += num(l.qty); a.rev += num(l.qty) * num(l.price); a.cost += num(l.qty) * num(l.cost);
   }));
-  f.exps.forEach(e => lines.push(["","expense",e.label,"","","","",(-num(e.amount)).toFixed(2),(-num(e.amount)).toFixed(2)].map(q).join(",")));
-  saveFile("cracker-sales-" + d + ".csv", "\ufeff" + lines.join("\n"), "text/csv");
+  const items = [["Item","Qty sold","Unit","Bought at (per unit)","Sold at (avg per unit)","Sales","Margin","Margin %"]];
+  Object.values(agg).sort((a, b) => b.rev - a.rev).forEach(a => items.push([a.name, a.qty, a.unit, xm(a.cost / a.qty), xm(a.rev / a.qty), xm(a.rev), xm(a.rev - a.cost), xp(a.rev ? (a.rev - a.cost) / a.rev : 0)]));
+
+  // Stock at end of the last day
+  const last = dates[dates.length - 1], upTo = soldMap(last);
+  const stock = [["Item","Unit","Bought","Sold in this file","Sold so far","Left","Cost per unit","Selling price","Left, at cost"]];
+  S.stock.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(i => {
+    const left = num(i.qty) - (upTo[i.id] || 0);
+    stock.push([i.name, i.unit, num(i.qty), agg[i.id] ? agg[i.id].qty : 0, upTo[i.id] || 0, left, xm(num(i.cost)), xm(num(i.price)), xm(Math.max(left, 0) * num(i.cost))]);
+  });
+
+  const exp = [["Date","What for","Amount"]];
+  exps.forEach(e => exp.push([prettyDate(e.date), e.label, xm(num(e.amount))]));
+  if (exps.length) exp.push([xb("Total"), "", xbm(exps.reduce((a, e) => a + num(e.amount), 0))]);
+
+  const blob = buildXlsx([
+    { name: "Summary", rows: sum, widths: [16,8,13,20,13,12,13,13,13] },
+    { name: "Bills", rows: bills, widths: [8,16,10,11,22,7,8,12,12,13,12] },
+    { name: "Items sold", rows: items, widths: [22,9,8,19,20,13,13,10] },
+    { name: "Stock", rows: stock, widths: [22,8,9,15,11,8,13,13,13] },
+    { name: "Expenses", rows: exp, widths: [16,24,13] }
+  ]);
+  saveBlob("cracker-sales-" + fileLabel + ".xlsx", blob);
+  toast("Excel file downloaded");
+}
+$("exportXlsx").addEventListener("click", () => { const d = $("repDate").value || today(); exportExcel([d], d); });
+$("billsXlsx").addEventListener("click", () => { const d = $("billDate").value || today(); exportExcel([d], d); });
+$("allXlsx").addEventListener("click", () => {
+  const dates = S.sales.map(s => s.date).concat(S.expenses.map(e => e.date));
+  if (!dates.length) { toast("No sales yet"); return; }
+  exportExcel(dates, "season-" + today());
 });
 
-/* ---------- PIN lock ---------- */
-const PIN_KEY = "cracker-ledger-pin";
-const AWAY_LIMIT_MS = 60 * 1000; // lock again if the app was in the background for over a minute
-let pinRec = null, hiddenAt = 0, failCount = 0, blockedUntil = 0;
-try { pinRec = JSON.parse(localStorage.getItem(PIN_KEY) || "null"); } catch(e) { pinRec = null; }
-
-async function hashPin(pin, salt){
-  const text = salt + ":" + pin + ":cracker-ledger";
-  if (window.crypto && crypto.subtle && window.TextEncoder) {
-    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-  }
-  let h = 2166136261; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
-  return "f" + h.toString(16);
+/* ---------- BILLS ---------- */
+$("billDate").value = today();
+$("billDate").addEventListener("change", renderBills);
+function renderBills(){
+  const d = $("billDate").value || today();
+  const list = S.sales.filter(s => s.date === d).sort((a,b) => b.ts - a.ts);
+  const el = $("billList");
+  if (!list.length) { el.innerHTML = '<div class="block empty"><b>No bills on ' + prettyDate(d) + '</b>Completed sales appear here.</div>'; return; }
+  el.innerHTML = list.map(s => {
+    const t = saleTotals(s);
+    return '<div class="block"><div class="row" style="justify-content:space-between;align-items:baseline"><b class="num" style="font-size:1.4rem">' + inr2(t.rev) + '</b>' +
+      '<span class="small muted">' + new Date(s.ts).toLocaleTimeString("en-IN", {hour:"numeric", minute:"2-digit"}) + ', ' + (s.pay === "upi" ? "UPI / card" : "Cash") + '</span></div>' +
+      (s.lines || []).map(l => '<div class="lrow"><div class="lname">' + esc(l.name) + '<small>' + l.qty + ' × ' + inr2(l.price) + '</small></div><div class="lnum">' + inr2(l.qty * l.price) + '</div></div>').join("") +
+      '<div class="row" style="justify-content:space-between;margin-top:4px"><span class="small muted">Margin <span class="secret"><span class="real">' + inr2(t.rev - t.cost) + '</span></span></span><button class="txt-btn neg" data-bdel="' + esc(s.id) + '">Delete bill</button></div></div>';
+  }).join("");
 }
-async function pinMatches(pin){ return !!pinRec && (await hashPin(pin, pinRec.salt)) === pinRec.hash; }
-const validPin = p => /^[0-9]{4,8}$/.test(p);
-
-function lockApp(){
-  if (!pinRec) return;
-  document.body.classList.add("locked"); document.body.classList.add("masked");
-  $("eyeBtn").textContent = "Show numbers"; $("eyeBtn").setAttribute("aria-pressed", "false");
-  if ($("colourDlg").open) $("colourDlg").close();
-  $("lockScreen").setAttribute("aria-hidden", "false");
-  $("lockPin").value = ""; $("lockErr").textContent = "";
-  setTimeout(() => $("lockPin").focus(), 50);
-}
-function unlockApp(){
-  document.body.classList.remove("locked");
-  $("lockScreen").setAttribute("aria-hidden", "true");
-  failCount = 0;
-}
-async function tryUnlock(){
-  const now = Date.now();
-  if (now < blockedUntil) { $("lockErr").textContent = "Too many tries. Wait " + Math.ceil((blockedUntil - now) / 1000) + " seconds."; return; }
-  const pin = $("lockPin").value.trim();
-  if (await pinMatches(pin)) { unlockApp(); return; }
-  failCount++; $("lockPin").value = "";
-  if (failCount >= 5) { blockedUntil = Date.now() + 30000; failCount = 0; $("lockErr").textContent = "Wrong PIN 5 times. Wait 30 seconds."; }
-  else $("lockErr").textContent = "Wrong PIN. Try again.";
-  $("lockPin").focus();
-}
-$("unlockBtn").addEventListener("click", tryUnlock);
-$("lockPin").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
-$("lockBtn").addEventListener("click", lockApp);
-$("forgotPin").addEventListener("click", async () => {
-  document.body.classList.remove("locked"); // the confirm dialog needs the page visible behind it
-  document.querySelector("main").style.visibility = "hidden";
-  document.querySelector("header").style.visibility = "hidden";
-  document.querySelector("nav").style.visibility = "hidden";
-  const yes = await askConfirm({ title: "Reset the app?", text: "Without the PIN, the only way in is to delete all stock, sales and expenses on this phone and start fresh. You can then load your latest backup with Restore from backup.", requireWord: true, okLabel: "Delete and reset" });
-  ["main","header","nav"].forEach(sel => document.querySelector(sel).style.visibility = "");
-  if (!yes) { lockApp(); return; }
-  S.stock = []; S.sales = []; S.expenses = []; cart = [];
-  saveLocal();
-  try { localStorage.removeItem(PIN_KEY); } catch(e) {}
-  pinRec = null; refreshPinUI(); unlockApp(); renderAll();
-  toast("App reset. Restore your backup from the Stock tab.");
+$("billList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-bdel]"); if (!b) return;
+  if (await askConfirm({ title: "Delete this bill?", text: "Its crackers go back into stock and it’s removed from the day report." })) { const id = b.dataset.bdel; await remove("sales", id); gsEnqueue({ action: "deleteSale", id }); toast("Bill deleted"); }
 });
 
-function refreshPinUI(){
-  const on = !!pinRec;
-  $("pinSet").hidden = on; $("pinChange").hidden = !on; $("pinRemove").hidden = !on; $("lockBtn").hidden = !on;
-  $("pinState").textContent = on
-    ? "PIN is on. The app asks for it when opened, after a minute in the background, or when you tap Lock. If you forget it, the only way back in is to reset the app, so keep nightly backups."
-    : "No PIN set. Anyone who opens the app on this phone can see your sales and profit.";
+/* ---------- confirm dialog ---------- */
+function askConfirm(opts){
+  return new Promise(resolve => {
+    const dlg = $("confirmDlg"), ok = $("cfOk"), word = $("cfWord");
+    $("cfTitle").textContent = opts.title; $("cfText").textContent = opts.text;
+    ok.textContent = opts.okLabel || "Delete";
+    ok.style.background = opts.safe ? "" : "var(--loss)";
+    $("cfWordWrap").hidden = !opts.requireWord; word.value = ""; ok.disabled = !!opts.requireWord;
+    let done = false;
+    const finish = v => { if (done) return; done = true; word.oninput = ok.onclick = $("cfCancel").onclick = dlg.onclose = null; if (dlg.open) dlg.close(); resolve(v); };
+    word.oninput = () => { ok.disabled = word.value.trim().toUpperCase() !== "CLEAR"; };
+    ok.onclick = () => finish(true);
+    $("cfCancel").onclick = () => finish(false);
+    dlg.onclose = () => finish(false);
+    dlg.showModal();
+    (opts.requireWord ? word : $("cfCancel")).focus();
+  });
 }
 
-function openPinDlg(mode){
-  $("pdTitle").textContent = mode === "set" ? "Set a PIN" : mode === "change" ? "Change PIN" : "Remove PIN";
-  $("pdCurWrap").hidden = mode === "set";
-  $("pdNewWrap").hidden = mode === "remove";
-  $("pdOk").textContent = mode === "remove" ? "Remove PIN" : "Save PIN";
-  ["pdCur","pdNew","pdNew2"].forEach(id => $(id).value = ""); $("pdErr").textContent = "";
-  $("pinDlg").dataset.mode = mode;
-  $("pinDlg").showModal();
-  (mode === "set" ? $("pdNew") : $("pdCur")).focus();
+/* ---------- start over ---------- */
+async function confirmWipe(cols, what, btn){
+  const yes = await askConfirm({ title: "Clear " + what + "?", text: "This permanently deletes " + what + ". It can’t be undone.", requireWord: true, okLabel: "Clear" });
+  if (!yes) return;
+  cols.forEach(col => S[col] = []); cart = [];
+  saveLocal(); renderAll(); toast("Cleared " + what);
 }
-$("pinSet").addEventListener("click", () => openPinDlg("set"));
-$("pinChange").addEventListener("click", () => openPinDlg("change"));
-$("pinRemove").addEventListener("click", () => openPinDlg("remove"));
-$("pdCancel").addEventListener("click", () => $("pinDlg").close());
-$("pdOk").addEventListener("click", async () => {
-  const mode = $("pinDlg").dataset.mode, err = $("pdErr");
-  if (mode !== "set" && !(await pinMatches($("pdCur").value.trim()))) { err.textContent = "Current PIN is wrong."; return; }
-  if (mode === "remove") {
-    try { localStorage.removeItem(PIN_KEY); } catch(e) {}
-    pinRec = null; refreshPinUI(); $("pinDlg").close(); toast("PIN removed"); return;
-  }
-  const p1 = $("pdNew").value.trim(), p2 = $("pdNew2").value.trim();
-  if (!validPin(p1)) { err.textContent = "Use 4 to 8 digits."; return; }
-  if (p1 !== p2) { err.textContent = "The two PINs don't match."; return; }
-  const salt = Array.from(crypto.getRandomValues ? crypto.getRandomValues(new Uint8Array(8)) : [Date.now() % 256]).map(b => b.toString(16)).join("");
-  const rec = { salt, hash: await hashPin(p1, salt) };
-  try { localStorage.setItem(PIN_KEY, JSON.stringify(rec)); }
-  catch(e) { err.textContent = "Couldn't save the PIN on this phone."; return; }
-  pinRec = rec; refreshPinUI(); $("pinDlg").close();
-  toast(mode === "set" ? "PIN set. Tap Lock to test it." : "PIN changed");
-});
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) hiddenAt = Date.now();
-  else if (pinRec && hiddenAt && Date.now() - hiddenAt > AWAY_LIMIT_MS) lockApp();
-});
-
-refreshPinUI();
-if (pinRec) lockApp();
+$("clearSales").addEventListener("click", e => confirmWipe(["sales","expenses"], "all sales and expenses", e.currentTarget));
+$("clearAll").addEventListener("click", e => confirmWipe(["stock","sales","expenses"], "all stock, sales and expenses", e.currentTarget));
 
 /* ---------- backup / restore ---------- */
 $("backupBtn").addEventListener("click", () => {
@@ -1012,91 +1191,115 @@ $("restoreFile").addEventListener("change", async e => {
   const file = e.target.files[0]; e.target.value = "";
   if (!file) return;
   let data;
-  try { data = JSON.parse(await file.text()); } catch(err) { toast("That file isn't a valid backup"); return; }
-  if (!data || !Array.isArray(data.stock) || !Array.isArray(data.sales)) { toast("That file isn't a cracker ledger backup"); return; }
-  const ok = await askConfirm({ title: "Restore this backup?", text: "It has " + data.stock.length + " items and " + data.sales.length + " bills. It will replace everything currently in the app.", okLabel: "Restore" });
+  try { data = JSON.parse(await file.text()); } catch(err) { toast("That file isn’t a valid backup"); return; }
+  if (!data || !Array.isArray(data.stock) || !Array.isArray(data.sales)) { toast("That file isn’t a cracker ledger backup"); return; }
+  const ok = await askConfirm({ title: "Restore this backup?", text: "It has " + data.stock.length + " items and " + data.sales.length + " bills. It replaces everything currently in the app.", okLabel: "Restore", safe: true });
   if (!ok) return;
   S.stock = data.stock; S.sales = data.sales; S.expenses = Array.isArray(data.expenses) ? data.expenses : [];
   cart = []; saveLocal(); renderAll(); toast("Backup restored");
 });
 
-/* ---------- BILLS ---------- */
-$("billDate").value = today();
-$("billDate").addEventListener("change", renderBills);
-function renderBills(){
-  const d = $("billDate").value || today();
-  const list = S.sales.filter(s => s.date === d).sort((a,b) => b.ts - a.ts);
-  const el = $("billList");
-  if (!list.length) { el.innerHTML = '<div class="panel empty">No bills on ' + prettyDate(d) + '.</div>'; return; }
-  el.innerHTML = list.map(s => {
-    const t = saleTotals(s);
-    return '<div class="panel"><div class="row spread"><div><b class="num" style="font-size:1.25rem">' + inr2(t.rev) + '</b> <span class="small muted">' + new Date(s.ts).toLocaleTimeString("en-IN", {hour:"numeric", minute:"2-digit"}) + ' · ' + (s.pay === "upi" ? "UPI / card" : "Cash") + '</span></div>' +
-      '<button class="btn link" data-bdel="' + esc(s.id) + '">Delete bill</button></div>' +
-      '<div class="small" style="margin-top:6px">' + (s.lines || []).map(l => esc(l.name) + ' × ' + l.qty + ' @ ' + inr2(l.price)).join("<br>") + '</div>' +
-      '<div class="small muted" style="margin-top:6px">Margin ' + inr2(t.rev - t.cost) + '</div></div>';
-  }).join("");
-}
-$("billList").addEventListener("click", async e => {
-  const b = e.target.closest("[data-bdel]"); if (!b) return;
-  if (await askConfirm({ title: "Delete this bill?", text: "Its crackers go back into stock and it's removed from the day report." })) { await remove("sales", b.dataset.bdel); toast("Bill deleted"); }
-});
-
-/* ---------- in-page confirm (browser pop-ups are blocked inside the artifact) ---------- */
-function askConfirm(opts){
-  return new Promise(resolve => {
-    const dlg = $("confirmDlg"), ok = $("cfOk"), word = $("cfWord");
-    $("cfTitle").textContent = opts.title;
-    $("cfText").textContent = opts.text;
-    ok.textContent = opts.okLabel || "Delete";
-    $("cfWordWrap").hidden = !opts.requireWord;
-    word.value = "";
-    ok.disabled = !!opts.requireWord;
-    let done = false;
-    const finish = v => { if (done) return; done = true; word.oninput = ok.onclick = $("cfCancel").onclick = dlg.onclose = null; if (dlg.open) dlg.close(); resolve(v); };
-    word.oninput = () => { ok.disabled = word.value.trim().toUpperCase() !== "CLEAR"; };
-    ok.onclick = () => finish(true);
-    $("cfCancel").onclick = () => finish(false);
-    dlg.onclose = () => finish(false);
-    dlg.showModal();
-    (opts.requireWord ? word : $("cfCancel")).focus();
-  });
-}
-
-/* ---------- clear data ---------- */
-async function wipe(cols){
-  if (db) {
-    for (const col of cols) {
-      const ids = S[col].map(x => x.id);
-      for (let i = 0; i < ids.length; i += 10) {
-        await Promise.all(ids.slice(i, i + 10).map(id => db.collection(col).doc(id).delete()));
-      }
-    }
-  } else {
-    cols.forEach(col => S[col] = []);
-    saveLocal(); renderData();
+/* ---------- PIN lock ---------- */
+const PIN_KEY = "cracker-ledger-pin";
+const AWAY_LIMIT_MS = 60 * 1000;
+let pinRec = null, hiddenAt = 0, failCount = 0, blockedUntil = 0;
+try { pinRec = JSON.parse(localStorage.getItem(PIN_KEY) || "null"); } catch(e) { pinRec = null; }
+async function hashPin(pin, salt){
+  const text = salt + ":" + pin + ":cracker-ledger";
+  if (window.crypto && crypto.subtle && window.TextEncoder) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
   }
+  let h = 2166136261; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return "f" + h.toString(16);
 }
-async function confirmWipe(cols, what, btn){
-  const yes = await askConfirm({ title: "Clear " + what + "?", text: "This permanently deletes " + what + ". It can't be undone.", requireWord: true, okLabel: "Clear" });
-  if (!yes) return;
-  btn.disabled = true;
-  try { await wipe(cols); cart = []; renderCart(); renderTiles(); toast("Cleared " + what); }
-  catch(e) { toast("Some data couldn't be deleted. Try again."); }
-  btn.disabled = false;
+async function pinMatches(pin){ return !!pinRec && (await hashPin(pin, pinRec.salt)) === pinRec.hash; }
+const validPin = p => /^[0-9]{4,8}$/.test(p);
+function setMasked(m){
+  document.body.classList.toggle("masked", m);
+  $("eyeBtn").setAttribute("aria-pressed", String(!m));
+  $("eyeBtn").setAttribute("aria-label", m ? "Show numbers" : "Hide numbers");
 }
-$("clearSales").addEventListener("click", e => confirmWipe(["sales","expenses"], "all sales and expenses", e.currentTarget));
-$("clearAll").addEventListener("click", e => confirmWipe(["stock","sales","expenses"], "all stock, sales and expenses", e.currentTarget));
+function lockApp(){
+  if (!pinRec) return;
+  closeCart(); setMasked(true);
+  ["itemDlg","restockDlg","pinDlg"].forEach(id => { if ($(id).open) $(id).close(); });
+  document.body.classList.add("locked");
+  $("lockScreen").setAttribute("aria-hidden", "false");
+  $("lockPin").value = ""; $("lockErr").textContent = "";
+  setTimeout(() => $("lockPin").focus(), 50);
+}
+function unlockApp(){ document.body.classList.remove("locked"); $("lockScreen").setAttribute("aria-hidden", "true"); failCount = 0; }
+async function tryUnlock(){
+  const now = Date.now();
+  if (now < blockedUntil) { $("lockErr").textContent = "Too many tries. Wait " + Math.ceil((blockedUntil - now) / 1000) + " seconds."; return; }
+  if (await pinMatches($("lockPin").value.trim())) { unlockApp(); return; }
+  failCount++; $("lockPin").value = "";
+  if (failCount >= 5) { blockedUntil = Date.now() + 30000; failCount = 0; $("lockErr").textContent = "Wrong PIN 5 times. Wait 30 seconds."; }
+  else $("lockErr").textContent = "Wrong PIN. Try again.";
+  $("lockPin").focus();
+}
+$("unlockBtn").addEventListener("click", tryUnlock);
+$("lockPin").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+$("lockBtn").addEventListener("click", lockApp);
+$("forgotPin").addEventListener("click", async () => {
+  document.body.classList.remove("locked");
+  ["main","header","nav"].forEach(sel => document.querySelector(sel).style.visibility = "hidden");
+  const yes = await askConfirm({ title: "Reset the app?", text: "Without the PIN, the only way in is to delete all stock, sales and expenses on this phone and start fresh. You can then load your latest backup from More, Restore from backup.", requireWord: true, okLabel: "Delete and reset" });
+  ["main","header","nav"].forEach(sel => document.querySelector(sel).style.visibility = "");
+  if (!yes) { lockApp(); return; }
+  S.stock = []; S.sales = []; S.expenses = []; cart = []; saveLocal();
+  try { localStorage.removeItem(PIN_KEY); } catch(e) {}
+  pinRec = null; refreshPinUI(); unlockApp(); renderAll();
+  toast("App reset. Restore your backup from the More tab.");
+});
+function refreshPinUI(){
+  const on = !!pinRec;
+  $("pinSet").hidden = on; $("pinChange").hidden = !on; $("pinRemove").hidden = !on; $("lockBtn").hidden = !on;
+  $("pinState").textContent = on
+    ? "PIN is on. The app asks for it when opened, after a minute in the background, or when you tap the lock. If you forget it, the only way back in is to reset the app, so keep nightly backups."
+    : "No PIN set. Anyone who opens the app on this phone can see your sales and profit.";
+}
+function openPinDlg(mode){
+  $("pdTitle").textContent = mode === "set" ? "Set a PIN" : mode === "change" ? "Change PIN" : "Remove PIN";
+  $("pdCurWrap").hidden = mode === "set"; $("pdNewWrap").hidden = mode === "remove";
+  $("pdOk").textContent = mode === "remove" ? "Remove PIN" : "Save PIN";
+  ["pdCur","pdNew","pdNew2"].forEach(id => $(id).value = ""); $("pdErr").textContent = "";
+  $("pinDlg").dataset.mode = mode; $("pinDlg").showModal();
+  (mode === "set" ? $("pdNew") : $("pdCur")).focus();
+}
+$("pinSet").addEventListener("click", () => openPinDlg("set"));
+$("pinChange").addEventListener("click", () => openPinDlg("change"));
+$("pinRemove").addEventListener("click", () => openPinDlg("remove"));
+$("pdCancel").addEventListener("click", () => $("pinDlg").close());
+$("pdOk").addEventListener("click", async () => {
+  const mode = $("pinDlg").dataset.mode, err = $("pdErr");
+  if (mode !== "set" && !(await pinMatches($("pdCur").value.trim()))) { err.textContent = "Current PIN is wrong."; return; }
+  if (mode === "remove") { try { localStorage.removeItem(PIN_KEY); } catch(e) {} pinRec = null; refreshPinUI(); $("pinDlg").close(); toast("PIN removed"); return; }
+  const p1 = $("pdNew").value.trim(), p2 = $("pdNew2").value.trim();
+  if (!validPin(p1)) { err.textContent = "Use 4 to 8 digits."; return; }
+  if (p1 !== p2) { err.textContent = "The two PINs don’t match."; return; }
+  const salt = Array.from(crypto.getRandomValues ? crypto.getRandomValues(new Uint8Array(8)) : [Date.now() % 256]).map(b => b.toString(16)).join("");
+  const rec = { salt, hash: await hashPin(p1, salt) };
+  try { localStorage.setItem(PIN_KEY, JSON.stringify(rec)); } catch(e) { err.textContent = "Couldn’t save the PIN on this phone."; return; }
+  pinRec = rec; refreshPinUI(); $("pinDlg").close();
+  toast(mode === "set" ? "PIN set. Tap the lock to test it." : "PIN changed");
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) hiddenAt = Date.now();
+  else if (pinRec && hiddenAt && Date.now() - hiddenAt > AWAY_LIMIT_MS) lockApp();
+});
 
 /* ---------- colour theme ---------- */
 const THEMES = {
-  mint:     { name: "Mint green", l: ["#DDF2DF","#1D3B24","#A9D8B0","#2E7D46"], d: ["#1F3D28","#E3F5E6","#36603F","#3E9A5A"] },
-  sky:      { name: "Sky blue",   l: ["#D9ECFA","#14324F","#A8CDEB","#1D4E89"], d: ["#1F3A55","#E3F0FB","#35587A","#3D72BE"] },
-  lavender: { name: "Lavender",   l: ["#E9E2F7","#2F2150","#C9B9EC","#5B3FA0"], d: ["#2E2547","#EEE8FA","#4A3D6E","#7A5FC4"] },
-  peach:    { name: "Peach",      l: ["#FDE4D3","#4A2412","#F2BFA0","#B3521E"], d: ["#47291A","#FBE9DD","#6B402A","#C9662E"] },
-  lemon:    { name: "Lemon",      l: ["#FBF3C8","#3D3305","#E8D98A","#7A6100"], d: ["#3D3612","#FBF5D6","#5E5320","#A88A10"] },
-  rose:     { name: "Rose pink",  l: ["#F9DFE6","#4A1626","#EDB3C3","#A3304F"], d: ["#45202B","#FBE7EC","#6B3443","#C24A6B"] },
-  aqua:     { name: "Aqua",       l: ["#D6F3F1","#123B39","#9FDCD7","#1C7A73"], d: ["#183C3A","#E0F6F4","#2F5E5B","#2E9990"] },
-  grey:     { name: "Light grey", l: ["#ECEEF0","#24292E","#CDD2D7","#3E4A56"], d: ["#2A2F35","#ECEEF0","#444B53","#6B7886"] }
+  mint:     { name: "Mint",      l: ["#DDF2DF","#1D3B24","#A9D8B0","#2E7D46"], d: ["#1F3D28","#E3F5E6","#36603F","#3E9A5A"] },
+  sky:      { name: "Sky blue",  l: ["#D9ECFA","#14324F","#A8CDEB","#1D4E89"], d: ["#1F3A55","#E3F0FB","#35587A","#3D72BE"] },
+  lavender: { name: "Lavender",  l: ["#E9E2F7","#2F2150","#C9B9EC","#5B3FA0"], d: ["#2E2547","#EEE8FA","#4A3D6E","#7A5FC4"] },
+  peach:    { name: "Peach",     l: ["#FDE4D3","#4A2412","#F2BFA0","#B3521E"], d: ["#47291A","#FBE9DD","#6B402A","#C9662E"] },
+  lemon:    { name: "Lemon",     l: ["#FBF3C8","#3D3305","#E8D98A","#7A6100"], d: ["#3D3612","#FBF5D6","#5E5320","#A88A10"] },
+  rose:     { name: "Rose",      l: ["#F9DFE6","#4A1626","#EDB3C3","#A3304F"], d: ["#45202B","#FBE7EC","#6B3443","#C24A6B"] },
+  aqua:     { name: "Aqua",      l: ["#D6F3F1","#123B39","#9FDCD7","#1C7A73"], d: ["#183C3A","#E0F6F4","#2F5E5B","#2E9990"] },
+  grey:     { name: "Grey",      l: ["#ECEEF0","#24292E","#CDD2D7","#3E4A56"], d: ["#2A2F35","#ECEEF0","#444B53","#6B7886"] }
 };
 const THEME_KEY = "cracker-ledger-theme";
 let themeId = "mint";
@@ -1105,41 +1308,123 @@ const darkMq = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : 
 function applyTheme(){
   const t = THEMES[themeId]; const v = (darkMq && darkMq.matches) ? t.d : t.l;
   const st = document.documentElement.style;
-  st.setProperty("--head-bg", v[0]); st.setProperty("--head-ink", v[1]); st.setProperty("--head-line", v[2]); st.setProperty("--red", v[3]);
+  st.setProperty("--head-bg", v[0]); st.setProperty("--head-ink", v[1]); st.setProperty("--head-line", v[2]); st.setProperty("--accent", v[3]);
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute("content", v[0]);
   document.querySelectorAll(".swatch").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.theme === themeId)));
 }
-function renderSwatches(){
-  $("swatches").innerHTML = Object.entries(THEMES).map(([id, t]) =>
-    '<button class="swatch" data-theme="' + id + '" aria-pressed="' + (id === themeId) + '"><i style="background:' + t.l[0] + ';border-color:' + t.l[3] + '"></i>' + t.name + '</button>').join("");
-}
+$("swatches").innerHTML = Object.entries(THEMES).map(([id, t]) =>
+  '<button class="swatch" data-theme="' + id + '" aria-pressed="' + (id === themeId) + '"><i style="background:' + t.l[0] + ';border-color:' + t.l[3] + '"></i>' + t.name + '</button>').join("");
 $("swatches").addEventListener("click", e => {
   const b = e.target.closest(".swatch"); if (!b) return;
   themeId = b.dataset.theme;
   try { localStorage.setItem(THEME_KEY, themeId); } catch(err) {}
   applyTheme();
 });
-$("colourBtn").addEventListener("click", () => $("colourDlg").showModal());
-$("colourDone").addEventListener("click", () => $("colourDlg").close());
 if (darkMq && darkMq.addEventListener) darkMq.addEventListener("change", applyTheme);
-renderSwatches(); applyTheme();
+applyTheme();
 
-/* ---------- hide / show private numbers ---------- */
-$("eyeBtn").addEventListener("click", () => {
-  const masked = document.body.classList.toggle("masked");
-  $("eyeBtn").textContent = masked ? "Show numbers" : "Hide numbers";
-  $("eyeBtn").setAttribute("aria-pressed", String(!masked));
+/* ---------- Google Sheet live copy ---------- */
+const GS_URL_KEY = "cracker-ledger-sheet-url", GS_Q_KEY = "cracker-ledger-sheet-queue";
+let gsUrl = "", gsQueue = [], gsBusy = false;
+try { gsUrl = localStorage.getItem(GS_URL_KEY) || ""; gsQueue = JSON.parse(localStorage.getItem(GS_Q_KEY) || "[]"); } catch(e) { gsQueue = []; }
+const gsValid = u => /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(u);
+function gsSaveQueue(){ try { localStorage.setItem(GS_Q_KEY, JSON.stringify(gsQueue)); } catch(e) {} }
+function gsSalePayload(s){
+  const sameDay = S.sales.filter(x => x.date === s.date).sort((a, b) => a.ts - b.ts);
+  const billNo = Math.max(1, sameDay.findIndex(x => x.id === s.id) + 1);
+  return { action: "addSale", sale: { id: s.id, date: s.date, billNo, pay: s.pay === "upi" ? "UPI / card" : "Cash",
+    time: new Date(s.ts).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }),
+    lines: (s.lines || []).map(l => ({ name: l.name, qty: num(l.qty), unit: l.unit || "", price: num(l.price), cost: num(l.cost) })) } };
+}
+function gsEnqueue(msg){ if (!gsUrl) return; gsQueue.push(msg); gsSaveQueue(); gsFlush(); }
+async function gsFlush(){
+  if (!gsUrl || gsBusy || !gsQueue.length || navigator.onLine === false) { gsRender(); return; }
+  gsBusy = true; gsRender();
+  try {
+    while (gsQueue.length) {
+      await fetch(gsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(gsQueue[0]) });
+      gsQueue.shift(); gsSaveQueue();
+    }
+  } catch(e) { /* no internet: the rest stay queued */ }
+  gsBusy = false; gsRender();
+}
+function gsRender(){
+  const el = $("gsStatus");
+  if (!gsUrl) { el.textContent = "Not connected yet."; el.className = "small muted"; return; }
+  if (gsQueue.length) { el.textContent = gsQueue.length + (gsQueue.length === 1 ? " update is" : " updates are") + " waiting to send. They send automatically when there's internet."; el.className = "small neg"; }
+  else { el.textContent = "Connected. Every sale is copied to your Google Sheet."; el.className = "small pos"; }
+}
+$("gsUrl").value = gsUrl;
+$("gsSave").addEventListener("click", () => {
+  const v = $("gsUrl").value.trim();
+  if (!v) {
+    gsUrl = ""; gsQueue = []; gsSaveQueue();
+    try { localStorage.removeItem(GS_URL_KEY); } catch(e) {}
+    gsRender(); toast("Google Sheet disconnected"); return;
+  }
+  if (!gsValid(v)) { toast("That isn't an Apps Script web app link. It should start with script.google.com and end with /exec."); return; }
+  gsUrl = v;
+  try { localStorage.setItem(GS_URL_KEY, v); } catch(e) {}
+  toast("Link saved"); gsFlush();
 });
+$("gsTest").addEventListener("click", async () => {
+  if (!gsUrl) { toast("Save the link first"); return; }
+  try {
+    await fetch(gsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "test" }) });
+    toast("Test sent. Your Google Sheet should now have Sales and Expenses tabs.");
+  } catch(e) { toast("Couldn't reach Google. Check your internet and try again."); }
+});
+$("gsBackfill").addEventListener("click", async () => {
+  if (!gsUrl) { toast("Save the link first"); return; }
+  if (!S.sales.length && !S.expenses.length) { toast("No sales to send yet"); return; }
+  const ok = await askConfirm({ title: "Send past sales?", text: "Sends all " + S.sales.length + " bills and " + S.expenses.length + " expenses in the app. Bills already in the sheet are skipped, so nothing is added twice.", okLabel: "Send", safe: true });
+  if (!ok) return;
+  S.sales.slice().sort((a, b) => a.ts - b.ts).forEach(s => gsQueue.push(gsSalePayload(s)));
+  S.expenses.forEach(ex => gsQueue.push({ action: "addExpense", expense: ex }));
+  gsSaveQueue(); toast("Sending to Google Sheet"); gsFlush();
+});
+window.addEventListener("online", gsFlush);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) gsFlush(); });
+setInterval(gsFlush, 60000);
+
+/* ---------- stall name ---------- */
+const TITLE_KEY = "cracker-ledger-title", DEFAULT_TITLE = "Cracker stall ledger";
+function applyTitle(t){
+  const name = (t || "").trim() || DEFAULT_TITLE;
+  $("appTitle").textContent = name; $("lockTitle").textContent = name; document.title = name;
+}
+let savedTitle = "";
+try { savedTitle = localStorage.getItem(TITLE_KEY) || ""; } catch(e) {}
+applyTitle(savedTitle);
+$("titleBtn").addEventListener("click", () => {
+  $("tName").value = $("appTitle").textContent === DEFAULT_TITLE ? "" : $("appTitle").textContent;
+  $("titleDlg").showModal(); $("tName").focus();
+});
+$("tCancel").addEventListener("click", () => $("titleDlg").close());
+function saveTitle(){
+  const v = $("tName").value.trim().slice(0, 40);
+  try { if (v) localStorage.setItem(TITLE_KEY, v); else localStorage.removeItem(TITLE_KEY); } catch(e) {}
+  applyTitle(v); $("titleDlg").close(); toast("Name saved");
+}
+$("tSave").addEventListener("click", saveTitle);
+$("tName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); saveTitle(); } });
+
+/* ---------- show / hide numbers ---------- */
+$("eyeBtn").addEventListener("click", () => setMasked(!document.body.classList.contains("masked")));
 
 /* ---------- header + render ---------- */
 function renderHeader(){
   const f = dayFigures(today());
-  $("hdrSales").textContent = inr(f.rev);
-  $("hdrProfit").textContent = inr(f.net);
+  $("hdrSales").textContent = inr(f.rev); $("hdrProfit").textContent = inr(f.net); $("hdrBills").textContent = f.sales.length;
 }
 function renderData(){ renderHeader(); renderTiles(); renderStock(); renderReport(); renderBills(); if (cart.length) updateCartTotals(); }
 function renderAll(){ renderData(); renderCart(); }
 
-connect();
+loadLocal();
+refreshPinUI();
+renderAll();
+if (pinRec) lockApp();
+gsFlush();
 if (navigator.storage && navigator.storage.persist) { navigator.storage.persist().catch(() => {}); }
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
