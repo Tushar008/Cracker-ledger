@@ -508,6 +508,7 @@ details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:8px 0
 <dialog id="titleDlg" class="sheet">
   <h3>Stall name</h3>
   <div class="field"><label for="tName">Shown at the top of the app</label><input type="text" id="tName" maxlength="40" autocomplete="off" placeholder="Cracker stall ledger"></div>
+  <div class="field"><label for="tPhone">Stall mobile number (shown to customers on the order page)</label><input type="tel" id="tPhone" maxlength="14" inputmode="tel" autocomplete="off" placeholder="10-digit number"></div>
   <p class="small muted">Leave it empty to go back to “Cracker stall ledger”.</p>
   <div class="dlg-acts"><button class="btn soft" id="tCancel">Cancel</button><button class="btn" id="tSave">Save name</button></div>
 </dialog>
@@ -552,7 +553,7 @@ details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:8px 0
 </div>
 
 <dialog id="orderDlg" class="sheet">
-  <h3>New order</h3>
+  <h3 id="oTitle">New order</h3>
   <div class="two">
     <div class="field"><label for="oName">Customer name</label><input type="text" id="oName" maxlength="40" autocomplete="off"></div>
     <div class="field"><label for="oPhone">Mobile number</label><input type="tel" id="oPhone" inputmode="tel" maxlength="14" autocomplete="off"></div>
@@ -1632,13 +1633,21 @@ function applyTitle(t){
 let savedTitle = "";
 try { savedTitle = localStorage.getItem(TITLE_KEY) || ""; } catch(e) {}
 applyTitle(savedTitle);
+const PHONE_KEY = "cracker-ledger-stall-phone";
+let stallPhone = "";
+try { stallPhone = localStorage.getItem(PHONE_KEY) || ""; } catch(e) {}
 $("titleBtn").addEventListener("click", () => {
   $("tName").value = $("appTitle").textContent === DEFAULT_TITLE ? "" : $("appTitle").textContent;
+  $("tPhone").value = stallPhone;
   $("titleDlg").showModal(); $("tName").focus();
 });
 $("tCancel").addEventListener("click", () => $("titleDlg").close());
 function saveTitle(){
   const v = $("tName").value.trim().slice(0, 40);
+  const ph = $("tPhone").value.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
+  if (ph && !/^\d{10}$/.test(ph)) { toast("Enter a 10-digit mobile number, or leave it empty"); return; }
+  stallPhone = ph; try { ph ? localStorage.setItem(PHONE_KEY, ph) : localStorage.removeItem(PHONE_KEY); } catch(e) {}
+  fbSaveSettings({ stallPhone: ph });
   try { if (v) localStorage.setItem(TITLE_KEY, v); else localStorage.removeItem(TITLE_KEY); } catch(e) {}
   applyTitle(v); $("titleDlg").close(); toast("Name saved"); fbSaveSettings({ title: v }); syncCatalogSoon();
 }
@@ -1647,6 +1656,7 @@ $("tName").addEventListener("keydown", e => { if (e.key === "Enter") { e.prevent
 
 /* ---------- ORDERS ---------- */
 const QR_OPEN_KEY = "cracker-ledger-qr-open";
+let editingOrderId = null;
 let ordFilter = "new", oCart = {}, collectId = null, collectPay = "cash", ordPulling = false, ordLastCheck = 0, qrOpen = false;
 try { qrOpen = localStorage.getItem(QR_OPEN_KEY) === "yes"; } catch(e) {}
 const ST_LABEL = { new: "New", accepted: "To collect", collected: "Collected", rejected: "Rejected", cancelled: "Cancelled" };
@@ -1685,8 +1695,10 @@ function renderOrders(){
 }
 function orderCard(o){
   const t = orderTotal(o), late = o.status === "accepted" && o.pickup && o.pickup < today();
-  const act = o.status === "new" ? '<button class="btn" data-oa="accept" data-oid="' + esc(o.id) + '">Accept</button><button class="txt-btn neg" data-oa="reject" data-oid="' + esc(o.id) + '">Reject</button><button class="txt-btn" data-oa="wa" data-oid="' + esc(o.id) + '">WhatsApp</button>'
-    : o.status === "accepted" ? '<button class="btn" data-oa="collect" data-oid="' + esc(o.id) + '">Collected</button><button class="txt-btn" data-oa="wa" data-oid="' + esc(o.id) + '">WhatsApp</button><button class="txt-btn neg" data-oa="cancel" data-oid="' + esc(o.id) + '">Cancel</button>'
+  const id = esc(o.id), forToday = o.pickup && o.pickup <= today();
+  const act = o.status === "new" ? '<button class="btn" data-oa="accept" data-oid="' + id + '">Accept</button>' + (forToday ? '<button class="btn soft" data-oa="collect" data-oid="' + id + '">Collect now</button>' : '') +
+      '<button class="txt-btn" data-oa="edit" data-oid="' + id + '">Edit</button><button class="txt-btn" data-oa="wa" data-oid="' + id + '">WhatsApp</button><button class="txt-btn neg" data-oa="reject" data-oid="' + id + '">Reject</button>'
+    : o.status === "accepted" ? '<button class="btn" data-oa="collect" data-oid="' + id + '">Collected</button><button class="txt-btn" data-oa="edit" data-oid="' + id + '">Edit</button><button class="txt-btn" data-oa="wa" data-oid="' + id + '">WhatsApp</button><button class="txt-btn neg" data-oa="cancel" data-oid="' + id + '">Cancel</button>'
     : o.status === "collected" && o.saleId ? '<span class="small muted">Saved as a bill.</span><button class="txt-btn" data-oa="print" data-oid="' + esc(o.id) + '">Print bill</button>' : '';
   return '<div class="block ord">' +
     '<div class="ord-top"><span class="ord-no">#' + esc(o.no) + '</span><span class="chip-s">' + (o.source === "qr" ? "QR" : "Phone") + '</span><span class="ord-st st-' + o.status + '">' + ST_LABEL[o.status] + '</span></div>' +
@@ -1731,11 +1743,18 @@ $("orderList").addEventListener("click", async e => {
   if (a === "wa") {
     const d = phoneDigits(o.phone); if (d.length !== 10) { toast("This order has no valid mobile number"); return; }
     const stall = $("appTitle").textContent, t = inr2(orderTotal(o));
-    const text = o.status === "new" ? "Hi " + o.name + ", we got your order #" + o.no + " at " + stall + " for " + t + ". We will confirm it shortly."
+    const items = (o.lines || []).map(l => l.name + " x " + num(l.qty)).join(", ");
+    const text = o.editedAt ? "Hi " + o.name + ", your order #" + o.no + " at " + stall + " is updated: " + items + ". Total " + t + (o.pickup ? ", pickup " + prettyDate(o.pickup) : "") + "."
+      : o.status === "new" ? "Hi " + o.name + ", we got your order #" + o.no + " at " + stall + " for " + t + ". We will confirm it shortly."
       : "Hi " + o.name + ", your order #" + o.no + " at " + stall + " is ready to collect" + (o.pickup ? " on " + prettyDate(o.pickup) : "") + ". Please pay " + t + " at the stall.";
     window.open("https://wa.me/91" + d + "?text=" + encodeURIComponent(text), "_blank");
   }
+  if (a === "edit") { openEditOrder(o); return; }
   if (a === "collect") {
+    if (o.status === "new") {
+      const issues = stockIssues(o);
+      if (issues.length && !(await askConfirm({ title: "Not enough stock", text: issues.join(". ") + ". Collect anyway?", okLabel: "Collect anyway", safe: true }))) return;
+    }
     collectId = o.id; collectPay = "cash";
     document.querySelectorAll("[data-cpay]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.cpay === "cash")));
     $("cTitle").textContent = "Order #" + o.no + " collected";
@@ -1758,7 +1777,7 @@ $("cOk").addEventListener("click", async () => {
 
 /* manual order */
 function renderOrderPicker(){
-  const q = $("oSearch").value.trim().toLowerCase(), sold = soldMap(), res = reservedMap();
+  const q = $("oSearch").value.trim().toLowerCase(), sold = soldMap(), res = reservedMap(editingOrderId);
   const list = S.stock.filter(i => !q || i.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
   $("oItems").innerHTML = list.length ? list.map(i => {
     const n = oCart[i.id] || 0, avail = num(i.qty) - (sold[i.id] || 0) - (res[i.id] || 0);
@@ -1783,18 +1802,39 @@ $("oItems").addEventListener("input", e => {
 $("oSearch").addEventListener("input", renderOrderPicker);
 $("newOrderBtn").addEventListener("click", () => {
   if (!S.stock.length) { toast("Add stock first"); return; }
+  editingOrderId = null; $("oTitle").textContent = "New order"; $("oSave").textContent = "Save order";
   oCart = {}; ["oName","oPhone","oNote","oSearch"].forEach(id => $(id).value = ""); $("oErr").textContent = "";
   $("oPickup").min = today(); $("oPickup").value = today();
   renderOrderPicker(); $("orderDlg").showModal(); $("oName").focus();
 });
+function openEditOrder(o){
+  editingOrderId = o.id; $("oTitle").textContent = "Edit order #" + o.no; $("oSave").textContent = "Save changes";
+  oCart = {}; const missing = [];
+  (o.lines || []).forEach(l => { if (itemById(l.itemId)) oCart[l.itemId] = (oCart[l.itemId] || 0) + num(l.qty); else missing.push(l.name); });
+  $("oName").value = o.name || ""; $("oPhone").value = o.phone || ""; $("oNote").value = o.note || ""; $("oSearch").value = "";
+  $("oPickup").min = today(); $("oPickup").value = o.pickup && o.pickup >= today() ? o.pickup : today();
+  $("oErr").textContent = missing.length ? missing.join(", ") + " is no longer in your stock list and was removed from this order." : "";
+  renderOrderPicker(); $("orderDlg").showModal();
+}
 $("oCancel").addEventListener("click", () => $("orderDlg").close());
 $("oSave").addEventListener("click", async () => {
   const name = $("oName").value.trim(), phone = phoneDigits($("oPhone").value), pickup = $("oPickup").value, err = $("oErr");
   if (name.length < 2) { err.textContent = "Enter the customer's name."; return; }
   if (!/^\d{10}$/.test(phone)) { err.textContent = "Enter a 10-digit mobile number."; return; }
   if (!pickup || pickup < today()) { err.textContent = "Choose a pickup date from today onwards."; return; }
-  const lines = Object.keys(oCart).map(id => { const it = itemById(id); return it ? { itemId: id, name: it.name, unit: it.unit, qty: oCart[id], price: num(it.price) } : null; }).filter(Boolean);
-  if (!lines.length) { err.textContent = "Add at least one item."; return; }
+  const old = editingOrderId ? S.orders.find(x => x.id === editingOrderId) : null;
+  const oldPrice = {}; if (old) (old.lines || []).forEach(l => { oldPrice[l.itemId] = num(l.price); });
+  // Items already on the order keep the price the customer was given; newly added items use today's price.
+  const lines = Object.keys(oCart).map(id => { const it = itemById(id); return it ? { itemId: id, name: it.name, unit: it.unit, qty: oCart[id], price: id in oldPrice ? oldPrice[id] : num(it.price) } : null; }).filter(Boolean);
+  if (!lines.length) { err.textContent = old ? "An order needs at least one item. To drop it completely, use Cancel or Reject." : "Add at least one item."; return; }
+  if (old) {
+    const draft = Object.assign({}, old, { lines });
+    const issues = old.status === "accepted" ? stockIssues(draft) : [];
+    if (issues.length && !(await askConfirm({ title: "Not enough stock", text: issues.join(". ") + ". Save anyway?", okLabel: "Save anyway", safe: true }))) return;
+    $("orderDlg").close();
+    await setOrder(old, { name, phone, pickup, note: $("oNote").value.trim(), lines, editedAt: Date.now() }, "Order #" + old.no + " updated. Tap WhatsApp to tell the customer.");
+    editingOrderId = null; return;
+  }
   const maxP = S.orders.filter(o => /^P\d+$/.test(o.no)).reduce((a, o) => Math.max(a, +o.no.slice(1)), 0);
   const o = { id: "p" + uid(), no: "P" + (maxP + 1), source: "phone", name, phone, pickup, note: $("oNote").value.trim(), lines, status: "accepted", createdAt: Date.now(), acceptedAt: Date.now(),
     placedAt: new Date().toLocaleString("en-IN") };
@@ -1809,7 +1849,7 @@ $("oSave").addEventListener("click", async () => {
 let catLastSent = "", catTimer = null;
 function catalogNow(){
   const sold = soldMap(), res = reservedMap();
-  return { stall: $("appTitle").textContent, open: qrOpen,
+  return { stall: $("appTitle").textContent, phone: stallPhone, open: qrOpen,
     items: S.stock.map(i => ({ id: i.id, name: i.name, unit: i.unit, price: num(i.price), avail: Math.max(0, num(i.qty) - (sold[i.id] || 0) - (res[i.id] || 0)) })) };
 }
 function syncCatalogSoon(){ if (!qrReady()) return; clearTimeout(catTimer); catTimer = setTimeout(() => syncCatalog(false), 2500); }
@@ -3243,11 +3283,12 @@ function applySharedSettings(d){
   const first = !fb.settingsSeen; fb.settingsSeen = true;
   if (first && !("title" in d) && !("sheetUrl" in d) && !("qrOpen" in d)) {
     const t = $("appTitle").textContent;
-    fbSaveSettings({ title: t === DEFAULT_TITLE ? "" : t, sheetUrl: gsUrl || "", sheetKey: gsUrl ? gsKey() : "", qrOpen });
+    fbSaveSettings({ title: t === DEFAULT_TITLE ? "" : t, stallPhone, sheetUrl: gsUrl || "", sheetKey: gsUrl ? gsKey() : "", qrOpen });
     return;
   }
   if (typeof d.title === "string") { try { d.title ? localStorage.setItem(TITLE_KEY, d.title) : localStorage.removeItem(TITLE_KEY); } catch(e) {} applyTitle(d.title); }
   if (d.sheetKey) { try { localStorage.setItem(GS_KEY_KEY, d.sheetKey); } catch(e) {} }
+  if (typeof d.stallPhone === "string") { stallPhone = d.stallPhone; try { stallPhone ? localStorage.setItem(PHONE_KEY, stallPhone) : localStorage.removeItem(PHONE_KEY); } catch(e) {} }
   if (typeof d.sheetUrl === "string" && d.sheetUrl !== gsUrl) {
     gsUrl = d.sheetUrl; $("gsUrl").value = gsUrl;
     try { gsUrl ? localStorage.setItem(GS_URL_KEY, gsUrl) : localStorage.removeItem(GS_URL_KEY); } catch(e) {}

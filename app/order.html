@@ -77,7 +77,7 @@ section[hidden]{display:none}
 </style>
 </head>
 <body>
-<header class="top"><div class="top-in"><h1 id="stall">Order crackers</h1><p>Order now, then pay and collect at the stall.</p></div></header>
+<header class="top"><div class="top-in"><h1 id="stall">Order crackers</h1><p>Order now, then pay and collect at the stall.<span id="contact"></span></p></div></header>
 <main>
   <section id="sList">
     <div class="center" id="loading"><b>Loading the price list</b>Please wait a moment.</div>
@@ -106,6 +106,8 @@ section[hidden]{display:none}
       <div>Your order number</div>
       <div class="done-no" id="doneNo"></div>
       <p class="note" id="doneMsg"></p>
+      <p class="note" id="doneAtStall" style="font-weight:600;color:var(--ink)">Already at the stall? Show this number at the counter.</p>
+      <p class="note" id="doneChange"></p>
     </div>
     <div class="card"><div id="doneSummary"></div></div>
     <p class="note" style="text-align:center">Take a screenshot of this page and show it when you collect.</p>
@@ -127,7 +129,8 @@ const hashVal = k => { try { return decodeURIComponent((location.hash.match(new 
 const api = hashVal("u"), fbProject = hashVal("p"), fbKey = hashVal("k");
 const fbMode = /^[a-z0-9-]{4,40}$/.test(fbProject) && /^[A-Za-z0-9_-]{20,60}$/.test(fbKey);
 const okApi = fbMode || /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(api);
-let items = [], cart = {}, db = null;
+let items = [], cart = {}, db = null, stallPhone = "", orderKey = "";
+const newKey = () => Array.from(crypto.getRandomValues(new Uint8Array(9))).map(b => b.toString(36).padStart(2, "0")).join("").slice(0, 16);
 function loadScript(src){ return new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = () => rej(new Error("load")); document.head.appendChild(el); }); }
 async function fbInit(){
   if (db) return;
@@ -149,6 +152,8 @@ async function load(){
     if (fbMode) { await fbInit(); const snap = await withTimeout(shopRef().collection("public").doc("catalog").get(), 15000); d = snap.exists ? snap.data() : { open: false, items: [] }; }
     else { const r = await fetch(api + "?action=catalog&t=" + Date.now()); d = await r.json(); }
     $("stall").textContent = d.stall || "Order crackers"; document.title = "Order from " + (d.stall || "the stall");
+    stallPhone = /^\d{10}$/.test(String(d.phone || "")) ? String(d.phone) : "";
+    $("contact").innerHTML = stallPhone ? ' Questions? Call <a href="tel:' + stallPhone + '" style="color:inherit;font-weight:600">' + stallPhone + '</a>.' : "";
     if (!d.open) { fail("Not taking orders right now", "Please visit the stall or try again later."); return; }
     items = (d.items || []).slice().sort((a, b) => a.name.localeCompare(b.name));
     if (!items.length) { fail("No items yet", "The stall hasn't added its price list. Please try again later."); return; }
@@ -189,7 +194,7 @@ function summaryHtml(l){
   return l.map(x => '<div class="row"><div>' + esc(x.name) + '<small>' + x.qty + ' ' + esc(x.unit) + ' × ' + inr(x.price) + '</small></div><b>' + inr(x.qty * x.price) + '</b></div>').join("") +
     '<div class="total"><span>Total to pay at the stall</span><b>' + inr(t) + '</b></div>';
 }
-$("bar").addEventListener("click", () => { $("summary").innerHTML = summaryHtml(lines()); $("formErr").hidden = true; show("sForm"); });
+$("bar").addEventListener("click", () => { $("summary").innerHTML = summaryHtml(lines()); $("formErr").hidden = true; orderKey = newKey(); show("sForm"); });
 $("backToList").addEventListener("click", () => { show("sList"); renderItems(); });
 $("pickup").min = localDate(); $("pickup").value = localDate();
 try { const saved = JSON.parse(localStorage.getItem("cracker-order-me") || "null"); if (saved) { $("name").value = saved.name || ""; $("phone").value = saved.phone || ""; } } catch(e) {}
@@ -206,14 +211,19 @@ $("place").addEventListener("click", async () => {
     const order = { name, phone, pickup, note: $("note").value.trim(), lines: l.map(x => ({ id: x.id, qty: x.qty })) };
     let d;
     if (fbMode) {
+      // Firebase keeps retrying on slow internet by itself, so we wait instead of letting the customer send it twice.
       const code = orderCode();
+      const slow = setTimeout(() => { $("place").textContent = "Still sending… please keep this page open"; }, 6000);
       try {
-        await withTimeout(shopRef().collection("incoming").add(Object.assign({ code, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, order)), 20000);
+        await withTimeout(shopRef().collection("incoming").add(Object.assign({ code, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, order)), 90000);
         d = { ok: true, no: code, pickup, lines: l };
       } catch(err) {
-        d = { ok: false, error: err && err.code === "permission-denied" ? "The stall isn't taking orders right now, or some details are not valid." : "Couldn't send the order. Check your internet and try again." };
-      }
+        d = { ok: false, error: err && err.code === "permission-denied" ? "The stall isn't taking orders right now, or some details are not valid."
+          : "We couldn't confirm your order because the internet is very slow. Please don't order again yet" + (stallPhone ? ": call the stall on " + stallPhone + " to check." : ". Ask at the stall.") };
+      } finally { clearTimeout(slow); }
     } else {
+      // The same key is sent if the customer taps again, so the stall never gets the order twice.
+      order.key = orderKey || (orderKey = newKey());
       const r = await fetch(api + "?action=placeOrder&order=" + encodeURIComponent(JSON.stringify(order)));
       d = await r.json();
     }
@@ -222,7 +232,11 @@ $("place").addEventListener("click", async () => {
     $("doneNo").textContent = d.no;
     $("doneMsg").textContent = "Collect on " + prettyDate(d.pickup) + ". You pay at the stall. The stall may call you on " + phone + " to confirm.";
     $("doneSummary").innerHTML = summaryHtml(d.lines.map(x => ({ name: x.name, unit: x.unit, qty: x.qty, price: x.price })));
-    cart = {}; show("sDone");
+    $("doneAtStall").hidden = d.pickup !== localDate();
+    const waText = encodeURIComponent("Hi, I want to change my order " + d.no + ".");
+    $("doneChange").innerHTML = stallPhone ? 'Need to change or cancel? Call <a href="tel:' + stallPhone + '">' + stallPhone + '</a> or <a href="https://wa.me/91' + stallPhone + '?text=' + waText + '" target="_blank" rel="noopener">WhatsApp the stall</a> with your order number.'
+      : "Need to change or cancel? Tell the stall your order number.";
+    cart = {}; orderKey = ""; show("sDone");
   } catch(e) { formError("Couldn't send the order. Check your internet and try again."); }
   finally { $("place").disabled = false; $("place").textContent = "Place order"; }
 });
