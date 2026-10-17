@@ -35,6 +35,7 @@
   --focus:#7FB0FF; --shadow:0 -6px 24px rgba(0,0,0,.5); color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hind",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;
   padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);-webkit-tap-highlight-color:transparent}
@@ -246,6 +247,54 @@ body.locked > header, body.locked > nav, body.locked > main{display:none}
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-weight:600;z-index:120;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 @media (min-width:900px){.toast{top:auto;bottom:24px}}
+
+/* orders */
+.nav-badge{position:absolute;top:5px;left:calc(50% + 4px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--loss);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1}
+.nav-badge[hidden]{display:none}
+@media (min-width:900px){.nav-badge{position:static;margin-left:2px}}
+.ord-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.ord-no{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:1.25rem;line-height:1}
+.chip-s{font-size:.72rem;font-weight:600;background:var(--sunk);color:var(--muted);border-radius:999px;padding:2px 8px}
+.ord-st{margin-left:auto;font-size:.78rem;font-weight:700;border-radius:999px;padding:3px 10px}
+.st-new{background:var(--accent);color:var(--accent-ink)}
+.st-accepted{background:var(--sunk);color:var(--warn);box-shadow:inset 0 0 0 1.5px var(--warn)}
+.st-collected{background:var(--profit-soft);color:var(--profit)}
+.st-rejected,.st-cancelled{background:var(--sunk);color:var(--muted)}
+.ord-name{font-weight:600;font-size:1.05rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ord-name a{padding:2px 4px;min-height:0;text-decoration:none}
+.ord-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.ord-acts .btn{min-height:44px}
+.o-items{max-height:36vh;overflow-y:auto;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;margin-bottom:8px}
+.o-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.o-row:last-child{border-bottom:0}
+.o-row small{display:block;color:var(--muted);font-size:.8rem}
+.qr-box{background:#fff;padding:14px;border-radius:14px;max-width:280px;margin:6px auto 0}
+.qr-box svg{display:block;width:100%;height:auto}
+
+/* firebase */
+textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+textarea:focus{border-color:var(--accent);outline:none}
+.sync-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--muted)}
+.sync-dot.ok{background:var(--profit)} .sync-dot.wait{background:var(--warn)} .sync-dot.bad{background:var(--loss)}
+details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:8px 0}
+
+/* printed bill */
+#printArea{display:none}
+@media print{
+  @page{margin:6mm}
+  html,body{background:#fff!important;color:#000!important;padding:0!important;margin:0!important}
+  body > *:not(#printArea){display:none!important}
+  #printArea{display:block!important}
+  .rc{max-width:72mm;margin:0 auto;font-family:"Hind",Arial,sans-serif;font-size:11pt;color:#000}
+  .rc-name{font-family:"Baloo 2",Arial,sans-serif;font-weight:800;font-size:15pt;text-align:center;line-height:1.15}
+  .rc-meta{text-align:center;font-size:9.5pt;margin:4px 0 8px}
+  .rc table{width:100%;border-collapse:collapse;font-size:10pt}
+  .rc th{border-bottom:1px dashed #000;text-align:right;padding:3px 0;font-weight:600}
+  .rc td{text-align:right;padding:3px 0;vertical-align:top}
+  .rc th:first-child,.rc td:first-child{text-align:left;padding-right:4px}
+  .rc-total{display:flex;justify-content:space-between;border-top:1px dashed #000;border-bottom:1px dashed #000;margin-top:4px;padding:6px 0;font-weight:800;font-size:13pt}
+  .rc-thanks{text-align:center;margin-top:8px;font-size:10pt}
+}
 </style>
 </head>
 <body class="masked">
@@ -261,6 +310,7 @@ body.locked > header, body.locked > nav, body.locked > main{display:none}
   <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-orders" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 2h6v4H9zM9 11h6M9 15h4"/></symbol>
   <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
 </svg>
 
@@ -282,6 +332,7 @@ body.locked > header, body.locked > nav, body.locked > main{display:none}
   <button role="tab" data-tab="stock" aria-selected="false"><svg class="i"><use href="#i-stock"/></svg>Stock</button>
   <button role="tab" data-tab="report" aria-selected="false"><svg class="i"><use href="#i-report"/></svg>Report</button>
   <button role="tab" data-tab="bills" aria-selected="false"><svg class="i"><use href="#i-bills"/></svg>Bills</button>
+  <button role="tab" data-tab="orders" aria-selected="false"><svg class="i"><use href="#i-orders"/></svg>Orders<span class="nav-badge" id="ordBadge" hidden></span></button>
   <button role="tab" data-tab="more" aria-selected="false"><svg class="i"><use href="#i-more"/></svg>More</button>
 </nav>
 
@@ -348,9 +399,47 @@ body.locked > header, body.locked > nav, body.locked > main{display:none}
     <button class="btn soft wide" id="billsXlsx">Download these bills as Excel</button>
   </section>
 
+  <!-- ORDERS -->
+  <section id="tab-orders" hidden>
+    <div class="sec-head"><h2>Orders</h2><button class="btn" id="newOrderBtn"><svg class="i"><use href="#i-plus"/></svg>New order</button></div>
+    <div class="seg" role="group" aria-label="Show orders" style="margin-bottom:12px">
+      <button type="button" data-of="new" aria-pressed="true">New<span id="cntNew"></span></button>
+      <button type="button" data-of="accepted" aria-pressed="false">To collect<span id="cntAcc"></span></button>
+      <button type="button" data-of="done" aria-pressed="false">Done</button>
+    </div>
+    <div id="orderList"></div>
+    <div class="block">
+      <h3>Customer QR orders</h3>
+      <p class="small muted" id="qrState"></p>
+      <div class="seg" role="group" aria-label="Taking QR orders" style="margin-bottom:12px"><button type="button" data-qro="on" aria-pressed="false">Taking orders</button><button type="button" data-qro="off" aria-pressed="true">Paused</button></div>
+      <div class="row"><button class="btn" id="qrShow">Show QR code</button><button class="btn soft" id="ordRefresh">Check for new orders</button></div>
+    </div>
+  </section>
+
   <!-- MORE -->
   <section id="tab-more" hidden>
     <div class="sec-head"><h2>More</h2></div>
+    <div class="block" id="fbBlock">
+      <h3>Live sync with your partner (Firebase)</h3>
+      <p class="small" id="fbState"></p>
+      <div id="fbSetup">
+        <div class="field"><label for="fbCfg">Paste the firebaseConfig block from your Firebase project</label><textarea id="fbCfg" rows="6" spellcheck="false" autocapitalize="off" placeholder="const firebaseConfig = {&#10;  apiKey: &quot;...&quot;,&#10;  authDomain: &quot;...&quot;,&#10;  projectId: &quot;...&quot;,&#10;  appId: &quot;...&quot;&#10;};"></textarea></div>
+        <button class="btn" id="fbSaveCfg">Save and connect</button>
+      </div>
+      <div id="fbSignin" hidden>
+        <button class="btn wide" id="fbGoogle">Sign in with Google</button>
+        <details><summary>Use email and password instead</summary>
+          <div class="field"><label for="fbEmail">Email</label><input type="text" id="fbEmail" inputmode="email" autocomplete="username" autocapitalize="off"></div>
+          <div class="field"><label for="fbPass">Password (6 or more characters)</label><input type="password" id="fbPass" autocomplete="current-password"></div>
+          <div class="row"><button class="btn" id="fbEmailIn">Sign in</button><button class="btn soft" id="fbEmailNew">Create account</button></div>
+        </details>
+      </div>
+      <div class="row" id="fbOn" hidden>
+        <button class="btn" id="fbMove" hidden>Move this phone's data online</button>
+        <button class="btn soft" id="fbSignOut">Sign out</button>
+      </div>
+      <button class="txt-btn neg" id="fbForget" hidden style="margin-top:6px">Remove Firebase from this phone</button>
+    </div>
     <div class="block">
       <h3>Colour</h3>
       <div class="swatches" id="swatches"></div>
@@ -387,9 +476,9 @@ body.locked > header, body.locked > nav, body.locked > main{display:none}
     </div>
     <div class="block">
       <h3>Start over</h3>
-      <p class="small muted">Clearing sales keeps your stock list and puts every item back to full. Clearing everything also deletes the stock list. Neither can be undone.</p>
+      <p class="small muted">Clearing sales keeps your stock list and puts every item back to full. Your Google Sheet is not touched. Clearing everything also deletes the stock list. Neither can be undone.</p>
       <div class="row">
-        <button class="btn soft" id="clearSales">Clear sales and expenses</button>
+        <button class="btn soft" id="clearSales">Clear sales, orders and expenses</button>
         <button class="btn danger" id="clearAll">Clear everything</button>
       </div>
     </div>
@@ -462,13 +551,62 @@ body.locked > header, body.locked > nav, body.locked > main{display:none}
   </div>
 </div>
 
+<dialog id="orderDlg" class="sheet">
+  <h3>New order</h3>
+  <div class="two">
+    <div class="field"><label for="oName">Customer name</label><input type="text" id="oName" maxlength="40" autocomplete="off"></div>
+    <div class="field"><label for="oPhone">Mobile number</label><input type="tel" id="oPhone" inputmode="tel" maxlength="14" autocomplete="off"></div>
+  </div>
+  <div class="two">
+    <div class="field"><label for="oPickup">Pickup date</label><input type="date" id="oPickup"></div>
+    <div class="field"><label for="oNote">Note</label><input type="text" id="oNote" maxlength="200" autocomplete="off"></div>
+  </div>
+  <label for="oSearch">Items</label>
+  <input type="search" id="oSearch" placeholder="Search items" autocomplete="off" style="margin-bottom:8px">
+  <div class="o-items" id="oItems"></div>
+  <div class="bill-total"><span>Total</span><span class="num" id="oTotal">₹0</span></div>
+  <p class="lock-err" id="oErr" role="alert" style="margin-top:8px"></p>
+  <div class="dlg-acts"><button class="btn soft" id="oCancel">Cancel</button><button class="btn" id="oSave">Save order</button></div>
+</dialog>
+
+<dialog id="collectDlg" class="sheet">
+  <h3 id="cTitle">Order collected</h3>
+  <p class="small" id="cText"></p>
+  <label>Paid by</label>
+  <div class="seg" role="group" aria-label="Payment mode" style="margin-bottom:14px"><button type="button" data-cpay="cash" aria-pressed="true">Cash</button><button type="button" data-cpay="upi" aria-pressed="false">UPI / card</button></div>
+  <div class="dlg-acts"><button class="btn soft" id="cCancel">Cancel</button><button class="btn" id="cOk">Save as sale</button></div>
+</dialog>
+
+<dialog id="qrDlg">
+  <h3 id="qrTitle" style="text-align:center">Scan to order</h3>
+  <div class="qr-box" id="qrBox"></div>
+  <p class="small muted" style="word-break:break-all;margin:10px 0" id="qrLink"></p>
+  <p class="lock-err" id="qrWarn" role="alert" hidden style="margin:0 0 10px">This QR won’t work for customers because this copy of the app isn’t your real website. Open the app from your GitHub link and make the QR there.</p>
+  <div class="row" style="flex-direction:column;align-items:stretch">
+    <button class="btn" id="qrShare">Share order link</button>
+    <button class="btn soft" id="qrDownload">Download QR poster</button>
+    <button class="btn soft" id="qrClose">Close</button>
+  </div>
+</dialog>
+
+<dialog id="printDlg" class="sheet">
+  <h3>The print screen didn't open</h3>
+  <p class="small muted">Some phones block printing from inside an installed app. Open the bill on its own page to print it, or send it to the customer instead.</p>
+  <div class="row" style="flex-direction:column;align-items:stretch">
+    <button class="btn" id="pdTab">Open bill to print</button>
+    <button class="btn soft" id="pdShare">Share bill (WhatsApp, SMS)</button>
+    <button class="btn soft" id="pdClose">Close</button>
+  </div>
+</dialog>
+
+<div id="printArea" aria-hidden="true"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function(){
 "use strict";
 /* ---------- state ---------- */
-const S = { stock: [], sales: [], expenses: [] };
+const S = { stock: [], sales: [], expenses: [], orders: [] };
 const LS_KEY = "cracker-ledger-v1";
 let cart = [];            // {itemId, qty, price}
 let payMode = "cash";
@@ -491,7 +629,7 @@ function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add(
 
 /* ---------- storage (this phone) ---------- */
 function loadLocal(){
-  try { const raw = localStorage.getItem(LS_KEY); if (raw) { const d = JSON.parse(raw); S.stock = d.stock || []; S.sales = d.sales || []; S.expenses = d.expenses || []; } } catch(e) {}
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) { const d = JSON.parse(raw); S.stock = d.stock || []; S.sales = d.sales || []; S.expenses = d.expenses || []; S.orders = d.orders || []; } } catch(e) {}
 }
 function saveLocal(){
   try { localStorage.setItem(LS_KEY, JSON.stringify(S)); return true; }
@@ -501,8 +639,20 @@ async function put(col, obj){
   const arr = S[col]; const i = arr.findIndex(x => x.id === obj.id);
   if (i >= 0) arr[i] = obj; else arr.push(obj);
   saveLocal(); renderData();
+  cloudOps([["set", col, obj]]);
 }
-async function remove(col, id){ S[col] = S[col].filter(x => x.id !== id); saveLocal(); renderData(); }
+async function remove(col, id){ S[col] = S[col].filter(x => x.id !== id); saveLocal(); renderData(); cloudOps([["del", col, id]]); }
+/* Replace whole collections (clear, restore). In live-sync mode the same change goes to Firebase. */
+function replaceData(nd){
+  const ops = [];
+  Object.keys(nd).forEach(col => {
+    const keep = new Set(nd[col].map(x => x.id));
+    S[col].forEach(x => { if (!keep.has(x.id)) ops.push(["del", col, x.id]); });
+    nd[col].forEach(x => ops.push(["set", col, x]));
+    S[col] = nd[col];
+  });
+  saveLocal(); renderAll(); cloudOps(ops);
+}
 
 /* ---------- derived numbers ---------- */
 function soldMap(upToDate){
@@ -539,6 +689,7 @@ function showTab(name){
   document.querySelectorAll("nav.tabs button").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === name ? "true" : "false"));
   document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + name);
   closeCart(); updateBillBar();
+  if (name === "orders") pullOrders(false);
   window.scrollTo(0, 0);
 }
 document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -548,18 +699,19 @@ function renderTiles(){
   const q = $("sellSearch").value.trim().toLowerCase();
   const sold = soldMap();
   const list = S.stock.filter(i => !q || i.name.toLowerCase().includes(q)).sort((a,b) => a.name.localeCompare(b.name));
+  const reserved = reservedMap();
   const el = $("tiles");
   if (!S.stock.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1"><b>No stock yet</b>Add what you bought in the Stock tab, then tap items here to sell.<br><br><button class="btn" data-goto="stock">Add stock</button></div>'; return; }
   if (!list.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">Nothing matches “' + esc(q) + '”.</div>'; return; }
   el.innerHTML = list.map(i => {
     const inCart = cart.filter(c => c.itemId === i.id).reduce((a,c) => a + c.qty, 0);
-    const total = num(i.qty), left = total - (sold[i.id] || 0) - inCart;
+    const res = reserved[i.id] || 0, total = num(i.qty), left = total - (sold[i.id] || 0) - res - inCart;
     const low = left <= Math.max(2, total * 0.1);
     const frac = total ? Math.max(0, Math.min(1, left / total)) : 0;
     return '<button class="tile' + (left <= 0 ? " out" : "") + (inCart ? " in" : "") + '" data-id="' + esc(i.id) + '" aria-label="Add ' + esc(i.name) + '">' +
       (inCart ? '<span class="badge">' + inCart + ' in bill</span>' : '') +
       '<span class="tile-top"><span class="tot">Total ' + total + '</span><span class="nm">' + esc(i.name) + '</span></span>' +
-      '<span class="lf' + (low ? " low" : "") + '">' + (left <= 0 ? "Out of stock" : left + " " + esc(i.unit) + " left") + '</span>' +
+      '<span class="lf' + (low ? " low" : "") + '">' + (left <= 0 ? (res ? "Rest reserved" : "Out of stock") : left + " " + esc(i.unit) + " left") + (res ? ", " + res + " reserved" : "") + '</span>' +
       '<span class="meter"><i class="' + (low ? "low" : "") + '" style="width:' + (frac * 100).toFixed(1) + '%"></i></span>' +
       '<span class="pr">' + inr2(num(i.price)) + '</span></button>';
   }).join("");
@@ -570,6 +722,7 @@ $("tiles").addEventListener("click", e => {
   const item = itemById(t.dataset.id); if (!item) return;
   const line = cart.find(c => c.itemId === item.id);
   if (line) line.qty += 1; else cart.push({ itemId: item.id, qty: 1, price: num(item.price) });
+  if ($("voiceOut").querySelector("[data-bprint]")) $("voiceOut").hidden = true;
   buzz(); renderCart(); renderTiles();
 });
 $("sellSearch").addEventListener("input", renderTiles);
@@ -624,7 +777,7 @@ function updateCartTotals(){
     row.querySelector("[data-amt]").textContent = inr2(c.qty * c.price);
     const msgs = [];
     if (it && c.price < num(it.cost)) msgs.push("Below your cost of " + inr2(num(it.cost)));
-    if (it) { const left = num(it.qty) - (sold[it.id] || 0); if (c.qty > left) msgs.push("Only " + Math.max(left,0) + " left in stock"); }
+    if (it) { const res = reservedMap()[it.id] || 0, left = num(it.qty) - (sold[it.id] || 0) - res; if (c.qty > left) msgs.push("Only " + Math.max(left,0) + " left" + (res ? " (" + res + " reserved for orders)" : " in stock")); }
     row.querySelector("[data-warn]").textContent = msgs.join(". ");
   });
   $("billTotal").textContent = inr2(total);
@@ -656,7 +809,9 @@ $("cartFoot").addEventListener("click", async e => {
     await put("sales", sale);
     gsEnqueue(gsSalePayload(sale));
     const t = saleTotals(sale);
-    cart = []; payMode = "cash"; $("voiceOut").hidden = true;
+    cart = []; payMode = "cash";
+    $("voiceOut").hidden = false;
+    $("voiceOut").innerHTML = '<div class="row" style="justify-content:space-between"><b>Bill saved: ' + inr2(t.rev) + '</b><button class="txt-btn" data-bprint="' + esc(sale.id) + '">Print bill</button></div>';
     renderCart(); renderTiles(); buzz();
     toast("Sale saved: " + inr2(t.rev));
   }
@@ -855,6 +1010,7 @@ function renderStock(){
   const el = $("stockList");
   if (!S.stock.length) { el.innerHTML = '<div class="block empty"><b>Nothing in stock yet</b>Tap Add stock and enter what you bought.</div>'; $("stockSummary").textContent = ""; return; }
   let inv = 0, leftCost = 0;
+  const resv = reservedMap();
   el.innerHTML = S.stock.slice().sort((a,b) => a.name.localeCompare(b.name)).map(i => {
     const total = num(i.qty), s = sold[i.id] || 0, left = total - s, m = num(i.price) - num(i.cost);
     const low = left <= Math.max(2, total * 0.1), frac = total ? Math.max(0, Math.min(1, left / total)) : 0;
@@ -862,6 +1018,7 @@ function renderStock(){
     return '<div class="stock-card">' +
       '<div class="sc-top"><span class="sc-name">' + esc(i.name) + '</span><span class="sc-left ' + (left <= 0 ? "neg" : "") + '">' + left + ' <small>of ' + total + ' ' + esc(i.unit) + ' left</small></span></div>' +
       '<span class="meter"><i class="' + (low ? "low" : "") + '" style="width:' + (frac * 100).toFixed(1) + '%"></i></span>' +
+      (resv[i.id] ? '<p class="small" style="margin:6px 0 0;color:var(--warn);font-weight:600">' + resv[i.id] + ' ' + esc(i.unit) + ' reserved for orders</p>' : '') +
       '<div class="sc-figs"><div><span>Bought at</span><b>' + inr2(num(i.cost)) + '</b></div><div><span>Selling at</span><b>' + inr2(num(i.price)) + '</b></div>' +
       '<div><span>Margin</span><b class="secret ' + (m >= 0 ? "pos" : "neg") + '"><span class="real">' + inr2(m) + '</span></b></div></div>' +
       '<div class="sc-acts"><button class="txt-btn" data-rs="' + esc(i.id) + '">Restock</button><button class="txt-btn" data-ed="' + esc(i.id) + '">Edit</button><button class="txt-btn neg" data-dl="' + esc(i.id) + '">Delete</button></div>' +
@@ -1143,13 +1300,76 @@ function renderBills(){
     return '<div class="block"><div class="row" style="justify-content:space-between;align-items:baseline"><b class="num" style="font-size:1.4rem">' + inr2(t.rev) + '</b>' +
       '<span class="small muted">' + new Date(s.ts).toLocaleTimeString("en-IN", {hour:"numeric", minute:"2-digit"}) + ', ' + (s.pay === "upi" ? "UPI / card" : "Cash") + '</span></div>' +
       (s.lines || []).map(l => '<div class="lrow"><div class="lname">' + esc(l.name) + '<small>' + l.qty + ' × ' + inr2(l.price) + '</small></div><div class="lnum">' + inr2(l.qty * l.price) + '</div></div>').join("") +
-      '<div class="row" style="justify-content:space-between;margin-top:4px"><span class="small muted">Margin <span class="secret"><span class="real">' + inr2(t.rev - t.cost) + '</span></span></span><button class="txt-btn neg" data-bdel="' + esc(s.id) + '">Delete bill</button></div></div>';
+      '<div class="row" style="justify-content:space-between;margin-top:4px"><span class="small muted">Margin <span class="secret"><span class="real">' + inr2(t.rev - t.cost) + '</span></span></span><span><button class="txt-btn" data-bprint="' + esc(s.id) + '">Print</button><button class="txt-btn neg" data-bdel="' + esc(s.id) + '">Delete bill</button></span></div></div>';
   }).join("");
 }
 $("billList").addEventListener("click", async e => {
+  const pb = e.target.closest("[data-bprint]"); if (pb) { printBill(pb.dataset.bprint); return; }
   const b = e.target.closest("[data-bdel]"); if (!b) return;
   if (await askConfirm({ title: "Delete this bill?", text: "Its crackers go back into stock and it’s removed from the day report." })) { const id = b.dataset.bdel; await remove("sales", id); gsEnqueue({ action: "deleteSale", id }); toast("Bill deleted"); }
 });
+
+/* ---------- print a bill ---------- */
+function billNoFor(s){
+  const same = S.sales.filter(x => x.date === s.date).sort((a, b) => a.ts - b.ts);
+  return same.findIndex(x => x.id === s.id) + 1;
+}
+function printBill(id){
+  const s = S.sales.find(x => x.id === id); if (!s) { toast("Bill not found"); return; }
+  const t = saleTotals(s), when = new Date(s.ts);
+  const qty = (s.lines || []).reduce((a, l) => a + num(l.qty), 0);
+  $("printArea").innerHTML = '<div class="rc">' +
+    '<div class="rc-name">' + esc($("appTitle").textContent) + '</div>' +
+    '<div class="rc-meta">Bill no ' + billNoFor(s) + '<br>' + when.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) + ', ' + when.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) + '</div>' +
+    '<table><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>' +
+    (s.lines || []).map(l => '<tr><td>' + esc(l.name) + '</td><td>' + num(l.qty) + '</td><td>' + inr2(num(l.price)) + '</td><td>' + inr2(num(l.qty) * num(l.price)) + '</td></tr>').join("") +
+    '</tbody></table>' +
+    '<div class="rc-total"><span>Total (' + qty + (qty === 1 ? ' item' : ' items') + ')</span><span>' + inr2(t.rev) + '</span></div>' +
+    '<div class="rc-meta">Paid by ' + (s.pay === "upi" ? "UPI / card" : "Cash") + '</div>' +
+    '<div class="rc-thanks">Thank you! Happy Diwali</div></div>';
+  startPrint(s);
+}
+const RC_CSS = 'body{margin:0;padding:16px;background:#fff;color:#000}.rc{max-width:72mm;margin:0 auto;font-family:Arial,sans-serif;font-size:11pt;color:#000}' +
+  '.rc-name{font-weight:800;font-size:15pt;text-align:center;line-height:1.15}.rc-meta{text-align:center;font-size:9.5pt;margin:4px 0 8px}' +
+  '.rc table{width:100%;border-collapse:collapse;font-size:10pt}.rc th{border-bottom:1px dashed #000;text-align:right;padding:3px 0;font-weight:600}' +
+  '.rc td{text-align:right;padding:3px 0;vertical-align:top}.rc th:first-child,.rc td:first-child{text-align:left;padding-right:4px}' +
+  '.rc-total{display:flex;justify-content:space-between;border-top:1px dashed #000;border-bottom:1px dashed #000;margin-top:4px;padding:6px 0;font-weight:800;font-size:13pt}' +
+  '.rc-thanks{text-align:center;margin-top:8px;font-size:10pt}.again{display:block;margin:20px auto 0;padding:12px 22px;font-size:16px;border:0;border-radius:10px;background:#2E7D46;color:#fff}' +
+  '@media print{body{padding:0}.again{display:none}@page{margin:6mm}}';
+let printFired = false, printSale = null;
+window.addEventListener("beforeprint", () => { printFired = true; });
+function startPrint(s){
+  printSale = s; printFired = false;
+  setTimeout(() => {
+    try { window.print(); } catch(e) {}
+    setTimeout(() => { if (!printFired) $("printDlg").showModal(); }, 1200);
+  }, 60);
+}
+function billText(s){
+  const when = new Date(s.ts), t = saleTotals(s);
+  return [$("appTitle").textContent, "Bill no " + billNoFor(s) + ", " + when.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) + ", " + when.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }), ""]
+    .concat((s.lines || []).map(l => l.name + "  " + num(l.qty) + " x " + inr2(num(l.price)) + " = " + inr2(num(l.qty) * num(l.price))))
+    .concat(["", "Total: " + inr2(t.rev), "Paid by " + (s.pay === "upi" ? "UPI / card" : "Cash"), "Thank you! Happy Diwali"]).join("\n");
+}
+$("pdTab").addEventListener("click", () => {
+  if (!printSale) return;
+  const html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bill</title><style>' + RC_CSS + '</style></head><body>' +
+    $("printArea").innerHTML + '<button class="again" onclick="print()">Print this bill</button><script>setTimeout(function(){print()},400)<\/script></body></html>';
+  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  const w = window.open(url, "_blank");
+  $("printDlg").close();
+  if (!w) toast("Your browser blocked the new tab. Allow pop-ups for this site, or use Share bill.");
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+});
+$("pdShare").addEventListener("click", async () => {
+  if (!printSale) return;
+  const text = billText(printSale);
+  if (navigator.share) { try { await navigator.share({ title: "Bill", text }); $("printDlg").close(); } catch(e) {} return; }
+  try { await navigator.clipboard.writeText(text); toast("Bill copied. Paste it into WhatsApp or any app."); $("printDlg").close(); }
+  catch(e) { toast("Sharing isn't available here"); }
+});
+$("pdClose").addEventListener("click", () => $("printDlg").close());
+$("voiceOut").addEventListener("click", e => { const pb = e.target.closest("[data-bprint]"); if (pb) printBill(pb.dataset.bprint); });
 
 /* ---------- confirm dialog ---------- */
 function askConfirm(opts){
@@ -1172,17 +1392,17 @@ function askConfirm(opts){
 
 /* ---------- start over ---------- */
 async function confirmWipe(cols, what, btn){
-  const yes = await askConfirm({ title: "Clear " + what + "?", text: "This permanently deletes " + what + ". It can’t be undone.", requireWord: true, okLabel: "Clear" });
+  const yes = await askConfirm({ title: "Clear " + what + "?", text: "This permanently deletes " + what + (fbLive() ? " for you and your partner" : "") + ". It can’t be undone.", requireWord: true, okLabel: "Clear" });
   if (!yes) return;
-  cols.forEach(col => S[col] = []); cart = [];
-  saveLocal(); renderAll(); toast("Cleared " + what);
+  const nd = {}; cols.forEach(col => nd[col] = []); cart = [];
+  replaceData(nd); toast("Cleared " + what);
 }
-$("clearSales").addEventListener("click", e => confirmWipe(["sales","expenses"], "all sales and expenses", e.currentTarget));
-$("clearAll").addEventListener("click", e => confirmWipe(["stock","sales","expenses"], "all stock, sales and expenses", e.currentTarget));
+$("clearSales").addEventListener("click", e => confirmWipe(["sales","expenses","orders"], "all sales, orders and expenses", e.currentTarget));
+$("clearAll").addEventListener("click", e => confirmWipe(["stock","sales","expenses","orders"], "all stock, sales, orders and expenses", e.currentTarget));
 
 /* ---------- backup / restore ---------- */
 $("backupBtn").addEventListener("click", () => {
-  const data = { app: "cracker-ledger", version: 1, savedAt: new Date().toISOString(), stock: S.stock, sales: S.sales, expenses: S.expenses };
+  const data = { app: "cracker-ledger", version: 2, savedAt: new Date().toISOString(), stock: S.stock, sales: S.sales, expenses: S.expenses, orders: S.orders, sheetUrl: gsUrl, sheetKey: gsUrl ? gsKey() : "" };
   saveFile("cracker-backup-" + today() + ".json", JSON.stringify(data), "application/json");
   toast("Backup downloaded");
 });
@@ -1195,8 +1415,11 @@ $("restoreFile").addEventListener("change", async e => {
   if (!data || !Array.isArray(data.stock) || !Array.isArray(data.sales)) { toast("That file isn’t a cracker ledger backup"); return; }
   const ok = await askConfirm({ title: "Restore this backup?", text: "It has " + data.stock.length + " items and " + data.sales.length + " bills. It replaces everything currently in the app.", okLabel: "Restore", safe: true });
   if (!ok) return;
-  S.stock = data.stock; S.sales = data.sales; S.expenses = Array.isArray(data.expenses) ? data.expenses : [];
-  cart = []; saveLocal(); renderAll(); toast("Backup restored");
+  cart = [];
+  replaceData({ stock: data.stock, sales: data.sales, expenses: Array.isArray(data.expenses) ? data.expenses : [], orders: Array.isArray(data.orders) ? data.orders : [] });
+  if (data.sheetKey) { try { localStorage.setItem(GS_KEY_KEY, data.sheetKey); } catch(err) {} }
+  if (data.sheetUrl && !gsUrl && gsValid(data.sheetUrl)) { gsUrl = data.sheetUrl; $("gsUrl").value = gsUrl; try { localStorage.setItem(GS_URL_KEY, gsUrl); } catch(err) {} }
+  gsRender(); toast("Backup restored");
 });
 
 /* ---------- PIN lock ---------- */
@@ -1248,7 +1471,8 @@ $("forgotPin").addEventListener("click", async () => {
   const yes = await askConfirm({ title: "Reset the app?", text: "Without the PIN, the only way in is to delete all stock, sales and expenses on this phone and start fresh. You can then load your latest backup from More, Restore from backup.", requireWord: true, okLabel: "Delete and reset" });
   ["main","header","nav"].forEach(sel => document.querySelector(sel).style.visibility = "");
   if (!yes) { lockApp(); return; }
-  S.stock = []; S.sales = []; S.expenses = []; cart = []; saveLocal();
+  if (fb.auth && fb.user) { try { fbUnsubscribe(); await fb.auth.signOut(); } catch(e) {} }
+  S.stock = []; S.sales = []; S.expenses = []; S.orders = []; cart = []; saveLocal();
   try { localStorage.removeItem(PIN_KEY); } catch(e) {}
   pinRec = null; refreshPinUI(); unlockApp(); renderAll();
   toast("App reset. Restore your backup from the More tab.");
@@ -1327,6 +1551,16 @@ applyTheme();
 const GS_URL_KEY = "cracker-ledger-sheet-url", GS_Q_KEY = "cracker-ledger-sheet-queue";
 let gsUrl = "", gsQueue = [], gsBusy = false;
 try { gsUrl = localStorage.getItem(GS_URL_KEY) || ""; gsQueue = JSON.parse(localStorage.getItem(GS_Q_KEY) || "[]"); } catch(e) { gsQueue = []; }
+const GS_KEY_KEY = "cracker-ledger-sheet-key";
+function gsKey(){
+  let k = "";
+  try { k = localStorage.getItem(GS_KEY_KEY) || ""; } catch(e) {}
+  if (!k) {
+    k = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, "0")).join("");
+    try { localStorage.setItem(GS_KEY_KEY, k); } catch(e) {}
+  }
+  return k;
+}
 const gsValid = u => /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(u);
 function gsSaveQueue(){ try { localStorage.setItem(GS_Q_KEY, JSON.stringify(gsQueue)); } catch(e) {} }
 function gsSalePayload(s){
@@ -1342,7 +1576,7 @@ async function gsFlush(){
   gsBusy = true; gsRender();
   try {
     while (gsQueue.length) {
-      await fetch(gsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(gsQueue[0]) });
+      await fetch(gsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(Object.assign({ key: gsKey() }, gsQueue[0])) });
       gsQueue.shift(); gsSaveQueue();
     }
   } catch(e) { /* no internet: the rest stay queued */ }
@@ -1360,17 +1594,19 @@ $("gsSave").addEventListener("click", () => {
   if (!v) {
     gsUrl = ""; gsQueue = []; gsSaveQueue();
     try { localStorage.removeItem(GS_URL_KEY); } catch(e) {}
+    fbSaveSettings({ sheetUrl: "" });
     gsRender(); toast("Google Sheet disconnected"); return;
   }
   if (!gsValid(v)) { toast("That isn't an Apps Script web app link. It should start with script.google.com and end with /exec."); return; }
   gsUrl = v;
   try { localStorage.setItem(GS_URL_KEY, v); } catch(e) {}
-  toast("Link saved"); gsFlush();
+  fbSaveSettings({ sheetUrl: gsUrl, sheetKey: gsKey() });
+  toast("Link saved"); gsFlush(); syncCatalog(true); renderOrders();
 });
 $("gsTest").addEventListener("click", async () => {
   if (!gsUrl) { toast("Save the link first"); return; }
   try {
-    await fetch(gsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "test" }) });
+    await fetch(gsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ key: gsKey(), action: "test" }) });
     toast("Test sent. Your Google Sheet should now have Sales and Expenses tabs.");
   } catch(e) { toast("Couldn't reach Google. Check your internet and try again."); }
 });
@@ -1404,10 +1640,1719 @@ $("tCancel").addEventListener("click", () => $("titleDlg").close());
 function saveTitle(){
   const v = $("tName").value.trim().slice(0, 40);
   try { if (v) localStorage.setItem(TITLE_KEY, v); else localStorage.removeItem(TITLE_KEY); } catch(e) {}
-  applyTitle(v); $("titleDlg").close(); toast("Name saved");
+  applyTitle(v); $("titleDlg").close(); toast("Name saved"); fbSaveSettings({ title: v }); syncCatalogSoon();
 }
 $("tSave").addEventListener("click", saveTitle);
 $("tName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); saveTitle(); } });
+
+/* ---------- ORDERS ---------- */
+const QR_OPEN_KEY = "cracker-ledger-qr-open";
+let ordFilter = "new", oCart = {}, collectId = null, collectPay = "cash", ordPulling = false, ordLastCheck = 0, qrOpen = false;
+try { qrOpen = localStorage.getItem(QR_OPEN_KEY) === "yes"; } catch(e) {}
+const ST_LABEL = { new: "New", accepted: "To collect", collected: "Collected", rejected: "Rejected", cancelled: "Cancelled" };
+function reservedMap(exceptId){
+  const m = {};
+  S.orders.forEach(o => { if (o.status !== "accepted" || o.id === exceptId) return; (o.lines || []).forEach(l => { m[l.itemId] = (m[l.itemId] || 0) + num(l.qty); }); });
+  return m;
+}
+const orderTotal = o => (o.lines || []).reduce((a, l) => a + num(l.qty) * num(l.price), 0);
+const phoneDigits = p => String(p || "").replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
+function statusFromLabel(t){ t = String(t || "").toLowerCase(); return t === "to collect" || t === "accepted" ? "accepted" : t === "collected" ? "collected" : t === "rejected" ? "rejected" : t === "cancelled" ? "cancelled" : "new"; }
+function orderSync(o){
+  gsEnqueue({ action: "upsertOrder", order: { id: o.id, no: o.no, source: o.source, name: o.name, phone: o.phone, pickup: o.pickup, note: o.note || "", placedAt: o.placedAt || "",
+    status: o.status, statusLabel: ST_LABEL[o.status] || o.status, lines: (o.lines || []).map(l => ({ itemId: l.itemId, name: l.name, unit: l.unit, qty: num(l.qty), price: num(l.price) })) } });
+}
+function renderOrders(){
+  const nNew = S.orders.filter(o => o.status === "new").length, nAcc = S.orders.filter(o => o.status === "accepted").length;
+  $("ordBadge").hidden = !nNew; $("ordBadge").textContent = nNew;
+  $("cntNew").textContent = nNew ? " (" + nNew + ")" : ""; $("cntAcc").textContent = nAcc ? " (" + nAcc + ")" : "";
+  document.querySelectorAll("[data-of]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.of === ordFilter)));
+  let list;
+  if (ordFilter === "new") list = S.orders.filter(o => o.status === "new").sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  else if (ordFilter === "accepted") list = S.orders.filter(o => o.status === "accepted").sort((a, b) => (a.pickup || "").localeCompare(b.pickup || ""));
+  else list = S.orders.filter(o => ["collected","rejected","cancelled"].includes(o.status)).sort((a, b) => (b.doneAt || b.createdAt || 0) - (a.doneAt || a.createdAt || 0)).slice(0, 60);
+  const emptyMsg = { new: ["No new orders", "Orders from the QR code appear here for you to accept."], accepted: ["Nothing to collect", "Accepted orders wait here until the customer collects them."], done: ["No finished orders yet", "Collected, rejected and cancelled orders appear here."] }[ordFilter];
+  $("orderList").innerHTML = list.length ? list.map(orderCard).join("") : '<div class="block empty"><b>' + emptyMsg[0] + '</b>' + emptyMsg[1] + '</div>';
+  // QR panel
+  const ready = qrReady();
+  document.querySelectorAll("[data-qro]").forEach(b => { b.setAttribute("aria-pressed", String((b.dataset.qro === "on") === qrOpen)); b.disabled = !ready; });
+  $("qrShow").disabled = !ready; $("ordRefresh").disabled = !gsUrl || fbLive(); $("ordRefresh").hidden = fbLive();
+  $("qrState").textContent = !ready ? "Turn on live sync (Firebase) or connect your Google Sheet in the More tab first. Customer orders travel through it."
+    : fbLive() ? (qrOpen ? "Live: customers who scan your QR code can order now, and new orders appear here instantly on both phones." : "Paused. Customers who scan the QR code see “Not taking orders right now”.")
+    : (qrOpen ? "Customers who scan your QR code can order now. New orders arrive here whenever this phone has internet."
+              : "Paused. Customers who scan the QR code see “Not taking orders right now”.") +
+      (ordLastCheck ? " Last checked " + new Date(ordLastCheck).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) + "." : "");
+}
+function orderCard(o){
+  const t = orderTotal(o), late = o.status === "accepted" && o.pickup && o.pickup < today();
+  const act = o.status === "new" ? '<button class="btn" data-oa="accept" data-oid="' + esc(o.id) + '">Accept</button><button class="txt-btn neg" data-oa="reject" data-oid="' + esc(o.id) + '">Reject</button><button class="txt-btn" data-oa="wa" data-oid="' + esc(o.id) + '">WhatsApp</button>'
+    : o.status === "accepted" ? '<button class="btn" data-oa="collect" data-oid="' + esc(o.id) + '">Collected</button><button class="txt-btn" data-oa="wa" data-oid="' + esc(o.id) + '">WhatsApp</button><button class="txt-btn neg" data-oa="cancel" data-oid="' + esc(o.id) + '">Cancel</button>'
+    : o.status === "collected" && o.saleId ? '<span class="small muted">Saved as a bill.</span><button class="txt-btn" data-oa="print" data-oid="' + esc(o.id) + '">Print bill</button>' : '';
+  return '<div class="block ord">' +
+    '<div class="ord-top"><span class="ord-no">#' + esc(o.no) + '</span><span class="chip-s">' + (o.source === "qr" ? "QR" : "Phone") + '</span><span class="ord-st st-' + o.status + '">' + ST_LABEL[o.status] + '</span></div>' +
+    '<div class="ord-name">' + esc(o.name) + (o.phone ? '<a class="txt-btn" href="tel:' + esc(phoneDigits(o.phone)) + '">' + esc(o.phone) + '</a>' : '') + '</div>' +
+    '<div class="small muted">Pickup ' + (o.pickup ? prettyDate(o.pickup) : "not set") + (late ? ' <b class="neg">overdue</b>' : '') + (o.note ? '. Note: ' + esc(o.note) : '') + '</div>' +
+    (o.lines || []).map(l => '<div class="lrow"><div class="lname">' + esc(l.name) + '<small>' + num(l.qty) + ' ' + esc(l.unit || "") + ' × ' + inr2(num(l.price)) + '</small></div><div class="lnum">' + inr2(num(l.qty) * num(l.price)) + '</div></div>').join("") +
+    '<div class="lrow total"><div class="lname">Total</div><div class="lnum">' + inr2(t) + '</div></div>' +
+    (act ? '<div class="ord-acts">' + act + '</div>' : '') + '</div>';
+}
+document.querySelectorAll("[data-of]").forEach(b => b.addEventListener("click", () => { ordFilter = b.dataset.of; renderOrders(); }));
+function stockIssues(o){
+  const sold = soldMap(), res = reservedMap(o.id), issues = [];
+  (o.lines || []).forEach(l => {
+    const it = itemById(l.itemId);
+    if (!it) { issues.push(l.name + " is no longer in your stock list"); return; }
+    const avail = num(it.qty) - (sold[it.id] || 0) - (res[it.id] || 0);
+    if (num(l.qty) > avail) issues.push(l.name + ": order needs " + num(l.qty) + ", only " + Math.max(avail, 0) + " available");
+  });
+  return issues;
+}
+async function setOrder(o, changes, msg){
+  Object.assign(o, changes);
+  await put("orders", o); orderSync(o); if (msg) toast(msg);
+}
+$("orderList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-oa]"); if (!b) return;
+  const o = S.orders.find(x => x.id === b.dataset.oid); if (!o) return;
+  const a = b.dataset.oa;
+  if (a === "accept") {
+    const issues = stockIssues(o);
+    if (issues.length && !(await askConfirm({ title: "Not enough stock", text: issues.join(". ") + ". Accept anyway?", okLabel: "Accept anyway", safe: true }))) return;
+    await setOrder(o, { status: "accepted", acceptedAt: Date.now() }, "Order #" + o.no + " accepted. Stock is set aside.");
+  }
+  if (a === "reject") {
+    if (!(await askConfirm({ title: "Reject order #" + o.no + "?", text: "The customer is not told automatically. You can call or WhatsApp them.", okLabel: "Reject" }))) return;
+    await setOrder(o, { status: "rejected", doneAt: Date.now() }, "Order rejected");
+  }
+  if (a === "cancel") {
+    if (!(await askConfirm({ title: "Cancel order #" + o.no + "?", text: "The reserved stock goes back on sale.", okLabel: "Cancel order" }))) return;
+    await setOrder(o, { status: "cancelled", doneAt: Date.now() }, "Order cancelled");
+  }
+  if (a === "wa") {
+    const d = phoneDigits(o.phone); if (d.length !== 10) { toast("This order has no valid mobile number"); return; }
+    const stall = $("appTitle").textContent, t = inr2(orderTotal(o));
+    const text = o.status === "new" ? "Hi " + o.name + ", we got your order #" + o.no + " at " + stall + " for " + t + ". We will confirm it shortly."
+      : "Hi " + o.name + ", your order #" + o.no + " at " + stall + " is ready to collect" + (o.pickup ? " on " + prettyDate(o.pickup) : "") + ". Please pay " + t + " at the stall.";
+    window.open("https://wa.me/91" + d + "?text=" + encodeURIComponent(text), "_blank");
+  }
+  if (a === "collect") {
+    collectId = o.id; collectPay = "cash";
+    document.querySelectorAll("[data-cpay]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.cpay === "cash")));
+    $("cTitle").textContent = "Order #" + o.no + " collected";
+    $("cText").textContent = o.name + " pays " + inr2(orderTotal(o)) + ". This saves the order as a normal bill.";
+    $("collectDlg").showModal();
+  }
+  if (a === "print" && o.saleId) printBill(o.saleId);
+});
+document.querySelectorAll("[data-cpay]").forEach(b => b.addEventListener("click", () => { collectPay = b.dataset.cpay; document.querySelectorAll("[data-cpay]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }));
+$("cCancel").addEventListener("click", () => $("collectDlg").close());
+$("cOk").addEventListener("click", async () => {
+  const o = S.orders.find(x => x.id === collectId); if (!o) { $("collectDlg").close(); return; }
+  const now = new Date();
+  const sale = { id: uid(), date: localDate(now), ts: now.getTime(), pay: collectPay, orderId: o.id,
+    lines: (o.lines || []).map(l => { const it = itemById(l.itemId) || {}; return { itemId: l.itemId, name: l.name, unit: l.unit || it.unit || "", qty: num(l.qty), price: num(l.price), cost: num(it.cost) }; }) };
+  $("collectDlg").close();
+  await put("sales", sale); gsEnqueue(gsSalePayload(sale));
+  await setOrder(o, { status: "collected", saleId: sale.id, doneAt: Date.now() }, "Saved as bill: " + inr2(orderTotal(o)));
+});
+
+/* manual order */
+function renderOrderPicker(){
+  const q = $("oSearch").value.trim().toLowerCase(), sold = soldMap(), res = reservedMap();
+  const list = S.stock.filter(i => !q || i.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
+  $("oItems").innerHTML = list.length ? list.map(i => {
+    const n = oCart[i.id] || 0, avail = num(i.qty) - (sold[i.id] || 0) - (res[i.id] || 0);
+    return '<div class="o-row" data-id="' + esc(i.id) + '"><div>' + esc(i.name) + '<small>' + inr2(num(i.price)) + ', ' + Math.max(avail, 0) + ' available</small></div>' +
+      '<div class="qty"><button data-od="-1" aria-label="One less">−</button><input type="number" min="0" inputmode="numeric" value="' + n + '" data-oq aria-label="Quantity"><button data-od="1" aria-label="One more">+</button></div></div>';
+  }).join("") : '<div class="empty">No items match.</div>';
+  updateOrderTotal();
+}
+function updateOrderTotal(){ $("oTotal").textContent = inr2(Object.keys(oCart).reduce((a, id) => { const it = itemById(id); return a + (it ? oCart[id] * num(it.price) : 0); }, 0)); }
+$("oItems").addEventListener("click", e => {
+  const b = e.target.closest("[data-od]"); if (!b) return;
+  const id = b.closest(".o-row").dataset.id, n = Math.max(0, (oCart[id] || 0) + Number(b.dataset.od));
+  if (n) oCart[id] = n; else delete oCart[id];
+  b.closest(".o-row").querySelector("[data-oq]").value = n; updateOrderTotal();
+});
+$("oItems").addEventListener("input", e => {
+  if (!e.target.matches("[data-oq]")) return;
+  const id = e.target.closest(".o-row").dataset.id, n = Math.max(0, Math.round(num(e.target.value)));
+  if (n) oCart[id] = n; else delete oCart[id];
+  updateOrderTotal();
+});
+$("oSearch").addEventListener("input", renderOrderPicker);
+$("newOrderBtn").addEventListener("click", () => {
+  if (!S.stock.length) { toast("Add stock first"); return; }
+  oCart = {}; ["oName","oPhone","oNote","oSearch"].forEach(id => $(id).value = ""); $("oErr").textContent = "";
+  $("oPickup").min = today(); $("oPickup").value = today();
+  renderOrderPicker(); $("orderDlg").showModal(); $("oName").focus();
+});
+$("oCancel").addEventListener("click", () => $("orderDlg").close());
+$("oSave").addEventListener("click", async () => {
+  const name = $("oName").value.trim(), phone = phoneDigits($("oPhone").value), pickup = $("oPickup").value, err = $("oErr");
+  if (name.length < 2) { err.textContent = "Enter the customer's name."; return; }
+  if (!/^\d{10}$/.test(phone)) { err.textContent = "Enter a 10-digit mobile number."; return; }
+  if (!pickup || pickup < today()) { err.textContent = "Choose a pickup date from today onwards."; return; }
+  const lines = Object.keys(oCart).map(id => { const it = itemById(id); return it ? { itemId: id, name: it.name, unit: it.unit, qty: oCart[id], price: num(it.price) } : null; }).filter(Boolean);
+  if (!lines.length) { err.textContent = "Add at least one item."; return; }
+  const maxP = S.orders.filter(o => /^P\d+$/.test(o.no)).reduce((a, o) => Math.max(a, +o.no.slice(1)), 0);
+  const o = { id: "p" + uid(), no: "P" + (maxP + 1), source: "phone", name, phone, pickup, note: $("oNote").value.trim(), lines, status: "accepted", createdAt: Date.now(), acceptedAt: Date.now(),
+    placedAt: new Date().toLocaleString("en-IN") };
+  const issues = stockIssues(o);
+  if (issues.length && !(await askConfirm({ title: "Not enough stock", text: issues.join(". ") + ". Save anyway?", okLabel: "Save anyway", safe: true }))) return;
+  $("orderDlg").close();
+  await put("orders", o); orderSync(o);
+  ordFilter = "accepted"; renderOrders(); toast("Order #" + o.no + " saved. Stock is set aside.");
+});
+
+/* QR orders: price list sync and fetching new orders */
+let catLastSent = "", catTimer = null;
+function catalogNow(){
+  const sold = soldMap(), res = reservedMap();
+  return { stall: $("appTitle").textContent, open: qrOpen,
+    items: S.stock.map(i => ({ id: i.id, name: i.name, unit: i.unit, price: num(i.price), avail: Math.max(0, num(i.qty) - (sold[i.id] || 0) - (res[i.id] || 0)) })) };
+}
+function syncCatalogSoon(){ if (!qrReady()) return; clearTimeout(catTimer); catTimer = setTimeout(() => syncCatalog(false), 2500); }
+async function syncCatalog(force){
+  if (fbLive()) {
+    const cat = catalogNow(), sig = "fb" + JSON.stringify(cat);
+    if (!force && sig === catLastSent) return;
+    fbShop().collection("public").doc("catalog").set(Object.assign({ updatedAt: Date.now() }, cat)).catch(fbError);
+    catLastSent = sig; return;
+  }
+  if (!gsUrl || navigator.onLine === false) return;
+  const cat = catalogNow(), sig = JSON.stringify(cat);
+  if (!force && sig === catLastSent) return;
+  try {
+    await fetch(gsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ key: gsKey(), action: "syncCatalog", catalog: cat }) });
+    catLastSent = sig;
+  } catch(e) {}
+}
+async function pullOrders(manual){
+  if (fbLive()) { if (manual) toast("Live sync is on, so new orders appear instantly"); return; }
+  if (!gsUrl) { if (manual) toast("Connect your Google Sheet in the More tab first"); return; }
+  if (ordPulling) return;
+  if (navigator.onLine === false) { if (manual) toast("No internet right now"); return; }
+  ordPulling = true;
+  try {
+    const r = await fetch(gsUrl + "?action=orders&key=" + encodeURIComponent(gsKey()) + "&t=" + Date.now());
+    const d = await r.json();
+    if (!d.ok) { if (manual) toast("Your Google Sheet didn't accept this phone. Update the script and see the help in More."); return; }
+    let added = 0;
+    (d.orders || []).forEach(x => {
+      if (!x.id || S.orders.some(o => o.id === x.id)) return;
+      S.orders.push({ id: x.id, no: x.no, source: "qr", name: x.name, phone: x.phone, pickup: x.pickup, note: x.note, placedAt: x.placedAt, createdAt: Date.now(),
+        status: statusFromLabel(x.status), lines: (x.lines || []).map(l => ({ itemId: l.itemId, name: l.name, unit: l.unit, qty: num(l.qty), price: num(l.price) })) });
+      if (statusFromLabel(x.status) === "new") added++;
+    });
+    ordLastCheck = Date.now();
+    saveLocal();
+    if (added) { renderData(); buzz(); toast(added + (added === 1 ? " new order" : " new orders")); }
+    else if (manual) toast("No new orders");
+  } catch(e) { if (manual) toast("Couldn't check for orders. Try again."); }
+  finally { ordPulling = false; renderOrders(); }
+}
+$("ordRefresh").addEventListener("click", () => pullOrders(true));
+document.querySelectorAll("[data-qro]").forEach(b => b.addEventListener("click", () => {
+  if (!qrReady()) return;
+  qrOpen = b.dataset.qro === "on";
+  try { localStorage.setItem(QR_OPEN_KEY, qrOpen ? "yes" : "no"); } catch(e) {}
+  fbSaveSettings({ qrOpen });
+  syncCatalog(true); renderOrders();
+  toast(qrOpen ? "Taking QR orders" : "QR orders paused");
+}));
+
+/* QR code */
+/* QR code encoder: Copyright (c) 2009 Kazuhiko Arase, MIT licence (https://www.d-project.com/). Bundled for offline use. */
+const makeQR = (function(){ const __m = {}; function require(p){ return __m[p.replace('./','')]; }
+__m['QRErrorCorrectLevel'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+; return module.exports; })();
+__m['QRMode'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+; return module.exports; })();
+__m['QRMaskPattern'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+; return module.exports; })();
+__m['QRMath'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+; return module.exports; })();
+__m['QRPolynomial'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+var QRMath = require('./QRMath');
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+; return module.exports; })();
+__m['QRRSBlock'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+; return module.exports; })();
+__m['QRBitBuffer'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+; return module.exports; })();
+__m['QR8bitByte'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+var QRMode = require('./QRMode');
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+; return module.exports; })();
+__m['QRUtil'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+var QRMode = require('./QRMode');
+var QRPolynomial = require('./QRPolynomial');
+var QRMath = require('./QRMath');
+var QRMaskPattern = require('./QRMaskPattern');
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+; return module.exports; })();
+__m['index'] = (function(){ var module = { exports: {} }; var exports = module.exports;
+//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = require('./QR8bitByte');
+var QRUtil = require('./QRUtil');
+var QRPolynomial = require('./QRPolynomial');
+var QRRSBlock = require('./QRRSBlock');
+var QRBitBuffer = require('./QRBitBuffer');
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+; return module.exports; })();
+const QRCode = __m['index'], EC = __m['QRErrorCorrectLevel'];
+return function(text){ const q = new QRCode(-1, EC.M); q.addData(text); q.make(); const n = q.getModuleCount(); const rows = []; for (let r = 0; r < n; r++) { const row = []; for (let c = 0; c < n; c++) row.push(q.isDark(r, c)); rows.push(row); } return rows; };
+})();
+function orderLink(){
+  const base = location.href.split("#")[0].split("?")[0].replace(/[^/]*$/, "") + "order.html";
+  return fbLive() ? base + "#p=" + encodeURIComponent(fb.cfg.projectId) + "&k=" + encodeURIComponent(fb.cfg.apiKey) : base + "#u=" + encodeURIComponent(gsUrl);
+}
+function qrSvg(text){
+  const m = makeQR(text), n = m.length, q = 2; let d = "";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (m[r][c]) d += "M" + (c + q) + " " + (r + q) + "h1v1h-1z";
+  return '<svg viewBox="0 0 ' + (n + 2*q) + ' ' + (n + 2*q) + '" shape-rendering="crispEdges" role="img" aria-label="QR code to order"><rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
+}
+$("qrShow").addEventListener("click", () => {
+  if (!qrReady()) return;
+  const link = orderLink();
+  $("qrTitle").textContent = "Scan to order from " + $("appTitle").textContent;
+  $("qrBox").innerHTML = qrSvg(link); $("qrLink").textContent = link;
+  const h = location.hostname;
+  $("qrWarn").hidden = location.protocol === "https:" && !/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(h) && !/claude|anthropic/i.test(h);
+  $("qrDlg").showModal();
+  if (!qrOpen) toast("QR orders are paused. Switch to Taking orders when you're ready.");
+});
+$("qrClose").addEventListener("click", () => $("qrDlg").close());
+$("qrShare").addEventListener("click", async () => {
+  const link = orderLink(), text = "Order crackers from " + $("appTitle").textContent + ": " + link;
+  if (navigator.share) { try { await navigator.share({ title: "Order crackers", text, url: link }); } catch(e) {} return; }
+  try { await navigator.clipboard.writeText(link); toast("Link copied"); } catch(e) { toast("Copy the link shown above"); }
+});
+$("qrDownload").addEventListener("click", () => {
+  const m = makeQR(orderLink()), n = m.length, W = 1080, H = 1400, cell = Math.floor(820 / (n + 4)), size = cell * (n + 4), x0 = (W - size) / 2, y0 = 260;
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#1B231E"; g.textAlign = "center";
+  g.font = "800 72px 'Baloo 2', Arial, sans-serif"; g.fillText($("appTitle").textContent.slice(0, 26), W / 2, 130);
+  g.font = "500 44px Hind, Arial, sans-serif"; g.fillText("Scan to order crackers", W / 2, 200);
+  g.fillStyle = "#000";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (m[r][c]) g.fillRect(x0 + (c + 2) * cell, y0 + (r + 2) * cell, cell, cell);
+  g.fillStyle = "#1B231E"; g.font = "500 40px Hind, Arial, sans-serif";
+  g.fillText("Order on your phone, then pay and collect at the stall", W / 2, y0 + size + 90);
+  cv.toBlob(b => { if (b) { saveBlob("order-qr-poster.png", b); toast("QR poster downloaded"); } }, "image/png");
+});
+setInterval(() => pullOrders(false), 60000);
+window.addEventListener("online", () => { pullOrders(false); syncCatalog(false); });
+
+/* ---------- FIREBASE LIVE SYNC ---------- */
+const FB_VER = "10.12.2";
+const FB_CFG_KEY = "cracker-ledger-firebase", FB_PENDING_KEY = "cracker-ledger-fb-pending", FB_BACKUP_KEY = "cracker-ledger-local-backup";
+const fb = { cfg: null, db: null, auth: null, user: null, authKnown: false, loadFailed: false, unsubs: [], pendingCols: {}, denied: false, settingsSeen: false, askedMove: false };
+let fbPending = [];
+try { fb.cfg = JSON.parse(localStorage.getItem(FB_CFG_KEY) || "null"); fbPending = JSON.parse(localStorage.getItem(FB_PENDING_KEY) || "[]"); } catch(e) { fbPending = []; }
+const fbLive = () => !!(fb.db && fb.user && !fb.denied);
+const qrReady = () => fbLive() || !!gsUrl;
+const fbShop = () => fb.db.collection("shops").doc("main");
+const fbClean = o => JSON.parse(JSON.stringify(o));
+function fbSavePending(){ try { localStorage.setItem(FB_PENDING_KEY, JSON.stringify(fbPending)); } catch(e) {} }
+/* Every change goes through here. Live: written to Firebase (which keeps it on the phone and uploads when online).
+   Not yet signed in but Firebase is set up: kept in a queue so nothing is lost. */
+function cloudOps(ops){
+  if (!ops.length) return;
+  if (fbLive()) { fbCommit(ops); return; }
+  if (fb.cfg && !fb.user && !fb.authKnown) { fbPending = fbPending.concat(fbClean(ops)); fbSavePending(); }
+}
+function fbCommit(ops){
+  for (let i = 0; i < ops.length; i += 400) {
+    const b = fb.db.batch();
+    ops.slice(i, i + 400).forEach(([t, col, x]) => {
+      const ref = fbShop().collection(col);
+      if (t === "del") b.delete(ref.doc(String(x)));
+      else { const d = fbClean(x), id = String(d.id); delete d.id; b.set(ref.doc(id), d); }
+    });
+    b.commit().catch(fbError);   // not awaited: works offline and uploads later
+  }
+}
+function fbError(err){
+  if (err && err.code === "permission-denied") {
+    if (!fb.denied) { fb.denied = true; fbUnsubscribe(); toast("This account isn't allowed. Check the email in your Firebase rules."); }
+  } else if (err) { console.warn("Firebase", err); }
+  fbRender();
+}
+function loadScript(src){ return new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = () => rej(new Error("Could not load " + src)); document.head.appendChild(el); }); }
+async function fbStart(){
+  fbRender();
+  if (!fb.cfg) { fb.authKnown = true; return; }
+  try {
+    if (!(window.firebase && firebase.firestore && firebase.auth)) for (const m of ["app", "auth", "firestore"]) await loadScript("https://www.gstatic.com/firebasejs/" + FB_VER + "/firebase-" + m + "-compat.js");
+  } catch(e) { fb.loadFailed = true; fbRender(); return; }
+  fb.loadFailed = false;
+  if (!firebase.apps.length) firebase.initializeApp(fb.cfg);
+  fb.db = firebase.firestore();
+  try { await fb.db.enablePersistence({ synchronizeTabs: true }); } catch(e) {}
+  fb.auth = firebase.auth();
+  try { const rr = await fb.auth.getRedirectResult(); if (rr && rr.user) toast("Signed in as " + rr.user.email); } catch(e) { if (e && e.code) toast(fbAuthMsg(e)); }
+  fb.auth.onAuthStateChanged(u => {
+    fb.user = u; fb.authKnown = true; fb.denied = false;
+    if (u) {
+      if (!localStorage.getItem(FB_BACKUP_KEY) && (S.stock.length || S.sales.length) && !localStorage.getItem("cracker-ledger-fb-moved")) {
+        try { localStorage.setItem(FB_BACKUP_KEY, JSON.stringify(S)); } catch(e) {}
+      }
+      fbSubscribe();
+      if (fbPending.length) { fbCommit(fbPending); fbPending = []; fbSavePending(); }
+    } else { fbUnsubscribe(); fbPending = []; fbSavePending(); }
+    fbRender(); renderOrders();
+  });
+}
+function fbUnsubscribe(){ fb.unsubs.forEach(u => { try { u(); } catch(e) {} }); fb.unsubs = []; }
+function fbSubscribe(){
+  fbUnsubscribe(); fb.settingsSeen = false;
+  ["stock", "sales", "expenses", "orders"].forEach(col => {
+    fb.unsubs.push(fbShop().collection(col).onSnapshot({ includeMetadataChanges: true }, snap => {
+      S[col] = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      fb.pendingCols[col] = snap.metadata.hasPendingWrites;
+      saveLocal(); renderData(); fbRender();
+      if (col === "stock" && !fb.askedMove && !S.stock.length && localStorage.getItem(FB_BACKUP_KEY) && !snap.metadata.fromCache) { fb.askedMove = true; offerMove(); }
+    }, fbError));
+  });
+  fb.unsubs.push(fbShop().collection("private").doc("settings").onSnapshot(d => applySharedSettings(d.exists ? d.data() : {}), fbError));
+  fb.unsubs.push(fbShop().collection("incoming").onSnapshot(snap => snap.docs.forEach(takeIncoming), fbError));
+}
+function fbSaveSettings(obj){ if (fbLive()) fbShop().collection("private").doc("settings").set(fbClean(obj), { merge: true }).catch(fbError); }
+function applySharedSettings(d){
+  const first = !fb.settingsSeen; fb.settingsSeen = true;
+  if (first && !("title" in d) && !("sheetUrl" in d) && !("qrOpen" in d)) {
+    const t = $("appTitle").textContent;
+    fbSaveSettings({ title: t === DEFAULT_TITLE ? "" : t, sheetUrl: gsUrl || "", sheetKey: gsUrl ? gsKey() : "", qrOpen });
+    return;
+  }
+  if (typeof d.title === "string") { try { d.title ? localStorage.setItem(TITLE_KEY, d.title) : localStorage.removeItem(TITLE_KEY); } catch(e) {} applyTitle(d.title); }
+  if (d.sheetKey) { try { localStorage.setItem(GS_KEY_KEY, d.sheetKey); } catch(e) {} }
+  if (typeof d.sheetUrl === "string" && d.sheetUrl !== gsUrl) {
+    gsUrl = d.sheetUrl; $("gsUrl").value = gsUrl;
+    try { gsUrl ? localStorage.setItem(GS_URL_KEY, gsUrl) : localStorage.removeItem(GS_URL_KEY); } catch(e) {}
+    gsRender();
+  }
+  if (typeof d.qrOpen === "boolean" && d.qrOpen !== qrOpen) { qrOpen = d.qrOpen; try { localStorage.setItem(QR_OPEN_KEY, qrOpen ? "yes" : "no"); } catch(e) {} }
+  renderOrders();
+}
+/* A customer's QR order arrives: price it from OUR stock list (never trust prices from a customer's phone) and file it as a new order. */
+function takeIncoming(doc){
+  const x = doc.data() || {}, id = doc.id;
+  const done = () => fbShop().collection("incoming").doc(id).delete().catch(fbError);
+  if (S.orders.some(o => o.id === id)) { done(); return; }
+  const lines = (Array.isArray(x.lines) ? x.lines : []).map(l => {
+    const it = itemById(String(l && l.id)), q = Math.floor(num(l && l.qty));
+    return it && q > 0 ? { itemId: it.id, name: it.name, unit: it.unit, qty: Math.min(q, 9999), price: num(it.price) } : null;
+  }).filter(Boolean);
+  if (!lines.length) { done(); return; }
+  const o = { id, no: String(x.code || ("Q-" + id.slice(0, 4).toUpperCase())), source: "qr", name: String(x.name || "").slice(0, 40), phone: String(x.phone || ""), pickup: String(x.pickup || ""),
+    note: String(x.note || "").slice(0, 200), lines, status: "new", createdAt: Date.now(), placedAt: new Date().toLocaleString("en-IN") };
+  put("orders", o); orderSync(o); done();
+  buzz(); toast("New order #" + o.no + " from " + o.name);
+}
+async function offerMove(){
+  const b = JSON.parse(localStorage.getItem(FB_BACKUP_KEY) || "null"); if (!b) return;
+  const ok = await askConfirm({ title: "Move this phone's data online?", text: "This phone has " + (b.stock || []).length + " stock items and " + (b.sales || []).length + " bills from before. Move them to live sync so your partner sees them too?", okLabel: "Move data", safe: true });
+  if (ok) fbMoveNow();
+}
+function fbMoveNow(){
+  const b = JSON.parse(localStorage.getItem(FB_BACKUP_KEY) || "null"); if (!b || !fbLive()) return;
+  const ops = [];
+  ["stock", "sales", "expenses", "orders"].forEach(col => (b[col] || []).forEach(x => ops.push(["set", col, x])));
+  fbCommit(ops);
+  try { localStorage.removeItem(FB_BACKUP_KEY); localStorage.setItem("cracker-ledger-fb-moved", "yes"); } catch(e) {}
+  toast("Moved " + (b.stock || []).length + " items and " + (b.sales || []).length + " bills online"); fbRender();
+}
+function fbAuthMsg(e){
+  const c = e && e.code || "";
+  return c === "auth/wrong-password" || c === "auth/invalid-credential" || c === "auth/invalid-login-credentials" ? "Wrong email or password."
+    : c === "auth/user-not-found" ? "No account with that email. Tap Create account."
+    : c === "auth/email-already-in-use" ? "That email already has an account. Tap Sign in."
+    : c === "auth/weak-password" ? "Use a password with at least 6 characters."
+    : c === "auth/invalid-email" ? "That email doesn't look right."
+    : c === "auth/unauthorized-domain" ? "Add this website to Authorized domains in Firebase (Authentication, Settings)."
+    : c === "auth/network-request-failed" ? "No internet. Try again when you're online."
+    : c === "auth/popup-closed-by-user" ? "Sign-in was closed before finishing."
+    : "Sign-in didn't work (" + c + ").";
+}
+function fbRender(){
+  const st = $("fbState"), on = fbLive(), pend = Object.values(fb.pendingCols).some(Boolean) || fbPending.length > 0;
+  $("fbSetup").hidden = !!fb.cfg;
+  $("fbSignin").hidden = !fb.cfg || !!fb.user || fb.loadFailed || !fb.auth;
+  $("fbOn").hidden = !fb.user;
+  $("fbForget").hidden = !fb.cfg;
+  $("fbMove").hidden = !(on && localStorage.getItem(FB_BACKUP_KEY));
+  let dot = "", msg;
+  if (!fb.cfg) msg = "Off. Both partners can sell from their own phones with stock and bills updating live. Set it up once with the Firebase guide, then paste the config here.";
+  else if (fb.loadFailed) { dot = "bad"; msg = "Couldn't load Firebase (no internet?). The app keeps working on this phone and syncs once it connects."; }
+  else if (!fb.auth) { dot = "wait"; msg = "Connecting to Firebase…"; }
+  else if (!fb.user) { dot = "wait"; msg = "Sign in to turn on live sync." + (fbPending.length ? " " + fbPending.length + " changes are waiting." : ""); }
+  else if (fb.denied) { dot = "bad"; msg = "Signed in as " + fb.user.email + ", but this account isn't allowed. Add it to the Firebase rules, or sign out and use the right account."; }
+  else { dot = pend || navigator.onLine === false ? "wait" : "ok";
+    msg = "Live sync is on. Signed in as " + fb.user.email + ". " + (pend || navigator.onLine === false ? "Some changes are waiting for internet and will upload automatically." : "All changes are saved online."); }
+  st.innerHTML = (dot ? '<span class="sync-dot ' + dot + '"></span>' : "") + esc(msg);
+}
+function parseFbConfig(text){
+  const cfg = {};
+  ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId", "measurementId"].forEach(k => {
+    const m = text.match(new RegExp('["\']?' + k + '["\']?\\s*:\\s*["\']([^"\']+)["\']'));
+    if (m) cfg[k] = m[1].trim();
+  });
+  return cfg.apiKey && cfg.projectId && cfg.appId && cfg.authDomain ? cfg : null;
+}
+$("fbSaveCfg").addEventListener("click", () => {
+  const cfg = parseFbConfig($("fbCfg").value);
+  if (!cfg) { toast("That doesn't look like a firebaseConfig. Copy the whole block with apiKey, authDomain, projectId and appId."); return; }
+  try { localStorage.setItem(FB_CFG_KEY, JSON.stringify(cfg)); } catch(e) {}
+  fb.cfg = cfg; fb.authKnown = false; toast("Firebase saved. Now sign in."); fbStart();
+});
+$("fbGoogle").addEventListener("click", async () => {
+  if (!fb.auth) return;
+  const prov = new firebase.auth.GoogleAuthProvider(); prov.setCustomParameters({ prompt: "select_account" });
+  try { await fb.auth.signInWithPopup(prov); }
+  catch(e) {
+    if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment", "auth/cancelled-popup-request"].includes(e.code)) { try { await fb.auth.signInWithRedirect(prov); } catch(e2) { toast(fbAuthMsg(e2)); } }
+    else toast(fbAuthMsg(e));
+  }
+});
+$("fbEmailIn").addEventListener("click", async () => { try { await fb.auth.signInWithEmailAndPassword($("fbEmail").value.trim().toLowerCase(), $("fbPass").value); } catch(e) { toast(fbAuthMsg(e)); } });
+$("fbEmailNew").addEventListener("click", async () => { try { await fb.auth.createUserWithEmailAndPassword($("fbEmail").value.trim().toLowerCase(), $("fbPass").value); } catch(e) { toast(fbAuthMsg(e)); } });
+$("fbMove").addEventListener("click", fbMoveNow);
+$("fbSignOut").addEventListener("click", async () => {
+  const ok = await askConfirm({ title: "Sign out of live sync?", text: "Your data stays safe online. This phone's copy is cleared until you sign in again.", okLabel: "Sign out", safe: true });
+  if (!ok) return;
+  fbUnsubscribe(); try { await fb.auth.signOut(); } catch(e) {}
+  cart = []; S.stock = []; S.sales = []; S.expenses = []; S.orders = []; saveLocal(); renderAll(); fbRender(); toast("Signed out");
+});
+$("fbForget").addEventListener("click", async () => {
+  const ok = await askConfirm({ title: "Remove Firebase from this phone?", text: "Live sync stops on this phone. Data already online is not deleted.", okLabel: "Remove", safe: true });
+  if (!ok) return;
+  fbUnsubscribe(); if (fb.auth) { try { await fb.auth.signOut(); } catch(e) {} }
+  try { localStorage.removeItem(FB_CFG_KEY); } catch(e) {}
+  location.reload();
+});
+window.addEventListener("online", fbRender); window.addEventListener("offline", fbRender);
 
 /* ---------- show / hide numbers ---------- */
 $("eyeBtn").addEventListener("click", () => setMasked(!document.body.classList.contains("masked")));
@@ -1417,7 +3362,7 @@ function renderHeader(){
   const f = dayFigures(today());
   $("hdrSales").textContent = inr(f.rev); $("hdrProfit").textContent = inr(f.net); $("hdrBills").textContent = f.sales.length;
 }
-function renderData(){ renderHeader(); renderTiles(); renderStock(); renderReport(); renderBills(); if (cart.length) updateCartTotals(); }
+function renderData(){ renderHeader(); renderTiles(); renderStock(); renderReport(); renderBills(); renderOrders(); syncCatalogSoon(); if (cart.length) updateCartTotals(); }
 function renderAll(){ renderData(); renderCart(); }
 
 loadLocal();
@@ -1425,6 +3370,8 @@ refreshPinUI();
 renderAll();
 if (pinRec) lockApp();
 gsFlush();
+setTimeout(() => { pullOrders(false); syncCatalog(false); }, 1500);
+fbStart();
 if (navigator.storage && navigator.storage.persist) { navigator.storage.persist().catch(() => {}); }
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
