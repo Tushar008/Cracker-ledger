@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order crackers</title>
+<meta name="theme-color" content="#DDF2DF">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Hind:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --sunk:#EBEFEA; --ink:#1B231E; --muted:#5B6860; --line:#DCE2DC;
+  --accent:#2E7D46; --accent-ink:#FFFFFF; --head-bg:#DDF2DF; --head-ink:#1D3B24; --head-line:#A9D8B0;
+  --loss:#B42318; --focus:#1B5FD1; --shadow:0 -6px 24px rgba(20,35,25,.14);
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --bg:#121815; --surface:#1B231E; --sunk:#161D19; --ink:#E9F0EB; --muted:#A3B1A8; --line:#2C3832;
+    --head-bg:#1F3D28; --head-ink:#E3F5E6; --head-line:#36603F; --accent:#3E9A5A; --loss:#F07065; --focus:#7FB0FF; --shadow:0 -6px 24px rgba(0,0,0,.5); color-scheme:dark; }
+}
+:root[data-theme="dark"]{ --bg:#121815; --surface:#1B231E; --sunk:#161D19; --ink:#E9F0EB; --muted:#A3B1A8; --line:#2C3832;
+  --head-bg:#1F3D28; --head-ink:#E3F5E6; --head-line:#36603F; --accent:#3E9A5A; --loss:#F07065; --focus:#7FB0FF; --shadow:0 -6px 24px rgba(0,0,0,.5); color-scheme:dark; }
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hind",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px));-webkit-tap-highlight-color:transparent}
+h1,h2,.num{font-family:"Baloo 2","Hind",system-ui,sans-serif}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.top{background:var(--head-bg);color:var(--head-ink);border-bottom:1px solid var(--head-line)}
+.top-in{max-width:720px;margin:0 auto;padding:16px}
+.top h1{margin:0;font-size:1.5rem;font-weight:800;line-height:1.1}
+.top p{margin:4px 0 0;font-size:.9rem;opacity:.85}
+main{max-width:720px;margin:0 auto;padding:14px 16px}
+.search{position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0 10px}
+input[type=search],input[type=text],input[type=tel],input[type=date],textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);min-height:48px;font-size:16px}
+textarea{min-height:76px;resize:vertical}
+input:focus,textarea:focus{border-color:var(--accent);outline:none}
+label{display:block;font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:5px}
+.field{margin-bottom:14px}
+.item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:12px 12px 12px 14px;margin-bottom:10px}
+.item.in{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.item.out{opacity:.55}
+.it-info{flex:1;min-width:0}
+.it-name{font-weight:600;line-height:1.25}
+.it-sub{font-size:.85rem;color:var(--muted)}
+.it-price{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:1.2rem;line-height:1.1}
+.qty{display:inline-flex;align-items:center;background:var(--sunk);border-radius:12px;flex:none}
+.qty button{border:0;background:none;width:44px;height:44px;font-size:1.3rem;font-weight:600;cursor:pointer;color:var(--ink)}
+.qty button:disabled{opacity:.3;cursor:not-allowed}
+.qty span{min-width:30px;text-align:center;font-weight:700}
+.add{border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:600;padding:0 18px;min-height:44px;cursor:pointer;flex:none}
+.bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:10;max-width:696px;margin:0 auto;display:flex;align-items:center;gap:12px;border:0;border-radius:16px;padding:10px 12px 10px 16px;min-height:62px;background:var(--ink);color:var(--bg);box-shadow:var(--shadow);cursor:pointer;text-align:left}
+.bar[hidden]{display:none}
+.bar .tot{font-family:"Baloo 2",sans-serif;font-size:1.5rem;font-weight:800;margin-right:auto;line-height:1}
+.bar .cnt{font-size:.85rem;opacity:.85}
+.bar .cta{background:var(--accent);color:var(--accent-ink);border-radius:11px;padding:9px 14px;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:10px 18px;min-height:52px;font-weight:600;font-size:1.05rem;cursor:pointer;background:var(--accent);color:var(--accent-ink);width:100%}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.soft{background:var(--sunk);color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row small{display:block;color:var(--muted);font-size:.82rem}
+.row b{font-family:"Baloo 2",sans-serif;white-space:nowrap}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);margin-top:6px;padding-top:10px}
+.total b{font-family:"Baloo 2",sans-serif;font-size:1.7rem;font-weight:800}
+.err{background:#FBE1DD;color:#7A1A12;border-radius:12px;padding:10px 12px;font-weight:600;margin-bottom:12px}
+.err[hidden]{display:none}
+.note{font-size:.9rem;color:var(--muted)}
+.center{text-align:center;padding:40px 16px;color:var(--muted)}
+.center b{display:block;color:var(--ink);font-size:1.15rem;margin-bottom:6px}
+.done-no{font-family:"Baloo 2",sans-serif;font-size:3rem;font-weight:800;color:var(--accent);line-height:1;margin:6px 0}
+.back{border:0;background:none;color:var(--accent);font-weight:600;padding:8px 0;cursor:pointer;margin-bottom:6px}
+section[hidden]{display:none}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in"><h1 id="stall">Order crackers</h1><p>Order now, then pay and collect at the stall.</p></div></header>
+<main>
+  <section id="sList">
+    <div class="center" id="loading"><b>Loading the price list</b>Please wait a moment.</div>
+    <div id="listWrap" hidden>
+      <div class="search"><input type="search" id="q" placeholder="Search crackers" aria-label="Search crackers" autocomplete="off"></div>
+      <div id="items"></div>
+    </div>
+  </section>
+
+  <section id="sForm" hidden>
+    <button class="back" id="backToList">‹ Change items</button>
+    <div class="card"><div id="summary"></div></div>
+    <div class="card">
+      <div class="field"><label for="name">Your name</label><input type="text" id="name" maxlength="40" autocomplete="name"></div>
+      <div class="field"><label for="phone">Mobile number</label><input type="tel" id="phone" maxlength="14" inputmode="tel" autocomplete="tel" placeholder="10-digit number"></div>
+      <div class="field"><label for="pickup">When will you collect?</label><input type="date" id="pickup"></div>
+      <div class="field"><label for="note">Note for the stall (optional)</label><textarea id="note" maxlength="200" placeholder="For example: will come after 6 pm"></textarea></div>
+      <p class="note">You pay when you collect. The stall may call you to confirm.</p>
+      <div class="err" id="formErr" role="alert" hidden></div>
+      <button class="btn" id="place">Place order</button>
+    </div>
+  </section>
+
+  <section id="sDone" hidden>
+    <div class="card" style="text-align:center">
+      <div>Your order number</div>
+      <div class="done-no" id="doneNo"></div>
+      <p class="note" id="doneMsg"></p>
+    </div>
+    <div class="card"><div id="doneSummary"></div></div>
+    <p class="note" style="text-align:center">Take a screenshot of this page and show it when you collect.</p>
+    <button class="btn soft" id="again">Place another order</button>
+  </section>
+</main>
+<button class="bar" id="bar" hidden><span><span class="cnt" id="barCnt"></span></span><span class="tot" id="barTot"></span><span class="cta">Next</span></button>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const inr = n => "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const localDate = (d = new Date()) => { const z = n => String(n).padStart(2, "0"); return d.getFullYear() + "-" + z(d.getMonth()+1) + "-" + z(d.getDate()); };
+const prettyDate = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }); };
+
+const hashVal = k => { try { return decodeURIComponent((location.hash.match(new RegExp("[#&]" + k + "=([^&]+)")) || [])[1] || ""); } catch(e) { return ""; } };
+const api = hashVal("u"), fbProject = hashVal("p"), fbKey = hashVal("k");
+const fbMode = /^[a-z0-9-]{4,40}$/.test(fbProject) && /^[A-Za-z0-9_-]{20,60}$/.test(fbKey);
+const okApi = fbMode || /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(api);
+let items = [], cart = {}, db = null;
+function loadScript(src){ return new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = () => rej(new Error("load")); document.head.appendChild(el); }); }
+async function fbInit(){
+  if (db) return;
+  for (const m of ["app", "firestore"]) await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-" + m + "-compat.js");
+  if (!firebase.apps.length) firebase.initializeApp({ apiKey: fbKey, projectId: fbProject });
+  db = firebase.firestore();
+}
+const shopRef = () => db.collection("shops").doc("main");
+function withTimeout(p, ms){ return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]); }
+function orderCode(){ const a = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; let c = "Q-"; const r = crypto.getRandomValues(new Uint8Array(4)); for (const b of r) c += a[b % a.length]; return c; }
+
+function show(id){ ["sList","sForm","sDone"].forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); updateBar(); }
+function fail(title, msg){ $("loading").innerHTML = "<b>" + esc(title) + "</b>" + esc(msg); $("loading").hidden = false; $("listWrap").hidden = true; }
+
+async function load(){
+  if (!okApi) { fail("This order link isn't complete", "Please scan the stall's QR code again."); return; }
+  try {
+    let d;
+    if (fbMode) { await fbInit(); const snap = await withTimeout(shopRef().collection("public").doc("catalog").get(), 15000); d = snap.exists ? snap.data() : { open: false, items: [] }; }
+    else { const r = await fetch(api + "?action=catalog&t=" + Date.now()); d = await r.json(); }
+    $("stall").textContent = d.stall || "Order crackers"; document.title = "Order from " + (d.stall || "the stall");
+    if (!d.open) { fail("Not taking orders right now", "Please visit the stall or try again later."); return; }
+    items = (d.items || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+    if (!items.length) { fail("No items yet", "The stall hasn't added its price list. Please try again later."); return; }
+    $("loading").hidden = true; $("listWrap").hidden = false; renderItems();
+  } catch(e) { fail("Couldn't load the price list", "Check your internet connection and reload the page."); }
+}
+function renderItems(){
+  const q = $("q").value.trim().toLowerCase();
+  const list = items.filter(i => !q || i.name.toLowerCase().includes(q));
+  $("items").innerHTML = list.length ? list.map(i => {
+    const n = cart[i.id] || 0, out = i.avail <= 0;
+    return '<div class="item' + (n ? " in" : "") + (out ? " out" : "") + '" data-id="' + esc(i.id) + '">' +
+      '<div class="it-info"><div class="it-name">' + esc(i.name) + '</div><div class="it-sub">' + (out ? "Sold out" : "per " + esc(i.unit) + (i.avail <= 5 ? ", only " + i.avail + " left" : "")) + '</div>' +
+      '<div class="it-price">' + inr(i.price) + '</div></div>' +
+      (out ? '' : n ? '<div class="qty"><button data-d="-1" aria-label="One less">−</button><span>' + n + '</span><button data-d="1" aria-label="One more"' + (n >= i.avail ? " disabled" : "") + '>+</button></div>'
+                    : '<button class="add" data-d="1">Add</button>') + '</div>';
+  }).join("") : '<div class="center">Nothing matches “' + esc(q) + '”.</div>';
+  updateBar();
+}
+$("items").addEventListener("click", e => {
+  const b = e.target.closest("[data-d]"); if (!b) return;
+  const id = b.closest(".item").dataset.id, it = items.find(x => x.id === id); if (!it) return;
+  const n = Math.max(0, Math.min(it.avail, (cart[id] || 0) + Number(b.dataset.d)));
+  if (n) cart[id] = n; else delete cart[id];
+  try { navigator.vibrate && navigator.vibrate(10); } catch(err) {}
+  renderItems();
+});
+$("q").addEventListener("input", renderItems);
+function lines(){ return Object.keys(cart).map(id => { const it = items.find(x => x.id === id); return it ? { id, name: it.name, unit: it.unit, qty: cart[id], price: it.price } : null; }).filter(Boolean); }
+function updateBar(){
+  const l = lines(), n = l.reduce((a, x) => a + x.qty, 0);
+  $("bar").hidden = !n || $("sList").hidden;
+  $("barCnt").textContent = n + (n === 1 ? " item" : " items");
+  $("barTot").textContent = inr(l.reduce((a, x) => a + x.qty * x.price, 0));
+}
+function summaryHtml(l){
+  const t = l.reduce((a, x) => a + x.qty * x.price, 0);
+  return l.map(x => '<div class="row"><div>' + esc(x.name) + '<small>' + x.qty + ' ' + esc(x.unit) + ' × ' + inr(x.price) + '</small></div><b>' + inr(x.qty * x.price) + '</b></div>').join("") +
+    '<div class="total"><span>Total to pay at the stall</span><b>' + inr(t) + '</b></div>';
+}
+$("bar").addEventListener("click", () => { $("summary").innerHTML = summaryHtml(lines()); $("formErr").hidden = true; show("sForm"); });
+$("backToList").addEventListener("click", () => { show("sList"); renderItems(); });
+$("pickup").min = localDate(); $("pickup").value = localDate();
+try { const saved = JSON.parse(localStorage.getItem("cracker-order-me") || "null"); if (saved) { $("name").value = saved.name || ""; $("phone").value = saved.phone || ""; } } catch(e) {}
+
+function formError(m){ $("formErr").textContent = m; $("formErr").hidden = false; }
+$("place").addEventListener("click", async () => {
+  const name = $("name").value.trim(), phone = $("phone").value.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, ""), pickup = $("pickup").value;
+  if (name.length < 2) { formError("Please enter your name."); $("name").focus(); return; }
+  if (!/^[6-9]\d{9}$/.test(phone)) { formError("Please enter a valid 10-digit mobile number."); $("phone").focus(); return; }
+  if (!pickup || pickup < localDate()) { formError("Please choose a pickup date from today onwards."); return; }
+  const l = lines(); if (!l.length) { show("sList"); return; }
+  $("place").disabled = true; $("place").textContent = "Sending your order…"; $("formErr").hidden = true;
+  try {
+    const order = { name, phone, pickup, note: $("note").value.trim(), lines: l.map(x => ({ id: x.id, qty: x.qty })) };
+    let d;
+    if (fbMode) {
+      const code = orderCode();
+      try {
+        await withTimeout(shopRef().collection("incoming").add(Object.assign({ code, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, order)), 20000);
+        d = { ok: true, no: code, pickup, lines: l };
+      } catch(err) {
+        d = { ok: false, error: err && err.code === "permission-denied" ? "The stall isn't taking orders right now, or some details are not valid." : "Couldn't send the order. Check your internet and try again." };
+      }
+    } else {
+      const r = await fetch(api + "?action=placeOrder&order=" + encodeURIComponent(JSON.stringify(order)));
+      d = await r.json();
+    }
+    if (!d.ok) { formError(d.error || "The order couldn't be placed. Please try again."); return; }
+    try { localStorage.setItem("cracker-order-me", JSON.stringify({ name, phone })); } catch(e) {}
+    $("doneNo").textContent = d.no;
+    $("doneMsg").textContent = "Collect on " + prettyDate(d.pickup) + ". You pay at the stall. The stall may call you on " + phone + " to confirm.";
+    $("doneSummary").innerHTML = summaryHtml(d.lines.map(x => ({ name: x.name, unit: x.unit, qty: x.qty, price: x.price })));
+    cart = {}; show("sDone");
+  } catch(e) { formError("Couldn't send the order. Check your internet and try again."); }
+  finally { $("place").disabled = false; $("place").textContent = "Place order"; }
+});
+$("again").addEventListener("click", () => { $("note").value = ""; show("sList"); load(); });
+load();
+})();
+</script>
+</body>
+</html>
